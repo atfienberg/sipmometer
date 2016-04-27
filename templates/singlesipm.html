@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block body %}	
+<h2 align="center"> <font color="red"> SiPM <txt id="sipmnum">{{num}}</txt> </font></h2>
+<div id="plot" style="width: 50em; height: 30em; margin: 0"></div>
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='singlesipm.js')}}">
+</script>
+Current gain setting: <b id="gainSetting"></b><br>
+<br>
+New setting: <input type=text id="newSetting" size="1"></input>
+<br><br>
+{% if num > 0 %}
+	<a href="{{url_for('sipm_graph', sipm_num=num-1)}}">prev</a>
+{% endif %}
+{% if num < 53 %}
+	<a href="{{url_for('sipm_graph', sipm_num=num+1)}}">next</a>
+{% endif %}
+{% endblock body %}
