@@ -13,8 +13,8 @@
              }]
              }"></script>
 </head>	
-  <script type="text/javascript" charset="utf-8">
-    </script>
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='layout.js')}}"> 
+</script>
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='style.css') }}">
 <link rel="shortcut icon" 
@@ -26,6 +26,11 @@ href="{{ url_for('static', filename='favicon.ico') }}">
     <a href="{{url_for('home')}}">tempgrid</a>
     <a href="{{url_for('all_temps')}}">tempplots</a>
     <a href="{{url_for('gain_grid')}}">gaingrid</a>
+    </div>
+    <div align="right">
+    <a style="display: none" id="stopLink" href="/stopLogging">stop</a> 
+    <b style="display: none" id="loggingStopped">logging stopped</b>
+    <a href="/restartLogging"> restart </a>
     </div>
   </div>
   {% block body %}{% endblock %}
