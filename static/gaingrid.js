@@ -7,6 +7,6 @@ $(document).ready(function() {
 	})();
 
 	socket.on('sipm gain', function(msg) {
-		$('a#sipm'.concat(msg.num)).text(msg.gain);	
+		$('#sipm'.concat(msg.num)).text(msg.gain);	
 	});
 });

@@ -82,7 +82,9 @@ def reply_logging_status():
 @socketio.on('temp plot')
 def temp_plot(msg):
     data = [['time', 'temp']]
-    for row in running_data:
+    # downsample to help with performance
+    stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
+    for row in running_data[::stepsize]:
         data.append([row[0], row[msg['num'] + 1]])
     emit('plot ready', {'num': msg['num'], 'data': data})
 
@@ -92,7 +94,9 @@ def all_temps_plot():
     header = ['time']
     header.extend('sipm %i' % i for i in range(54))
     data = [header]
-    for row in running_data:
+    # downsample to help with performance
+    stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
+    for row in running_data[::stepsize]:
         data.append([element for element in row])
     emit('all temps ready', {'data': data})
 
