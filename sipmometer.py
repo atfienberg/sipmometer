@@ -116,12 +116,11 @@ def single_gain(msg):
 def update_temps():
     while keep_logging:
         sleep(1)
-        with open('temps/sipmtemps.txt', 'a') as file:
-            measure_temps(file)
+        measure_temps()
 
 
-def measure_temps(file):
-    with open('temps/sipmtemps.txt', 'a') as file:
+def measure_temps():
+    with open(current_file, 'a') as file:
         now = datetime.now()
         file.write('%02i/%02i/%02i' % (now.month, now.day, now.year))
         file.write(', %02i:%02i:%02i' % (now.hour, now.minute, now.second))
@@ -163,12 +162,11 @@ def start_logging():
             for sipm_num in range(54):
                 file.write(', sipm%i' % sipm_num)
                 temps.append(round(np.random.uniform(25, 30), 2))
-            measure_temps(file)
+            measure_temps()
         log_thread = Thread(name='temp_updater', target=update_temps)
         keep_logging = True
         log_thread.start()
 
 
 if __name__ == '__main__':
-    start_logging()
     socketio.run(app)
