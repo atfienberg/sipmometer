@@ -25,6 +25,12 @@ $(document).ready(function() {
 				vAxis: {
 					title: "temp"
 				},
+				colors: ['blue', 'red', 'red'],
+				series: {
+					0: { lineDashStyle: [0, 0] },
+					1: { lineDashStyle: [2, 2] },
+					2: { lineDashStyle: [2, 2] }
+				},
 				fontSize: 18
 			};
 			var traceplot = new google.visualization.LineChart(document.getElementById('plot'));

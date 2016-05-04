@@ -9,6 +9,7 @@ $(document).ready(function() {
 	socket.on('all temps ready', function(msg) {
 		var plotdata = google.visualization.arrayToDataTable(msg.data);
 		var options = {
+			title: 'all',
 			curveType: 'function',
 			legend: 'none',
 			hAxis: {
@@ -21,5 +22,21 @@ $(document).ready(function() {
 		};
 		var traceplot = new google.visualization.LineChart(document.getElementById('plot'));
 		traceplot.draw(plotdata, options);
+
+		var avgplotdata = google.visualization.arrayToDataTable(msg.avgdata);
+		var avgoptions = {
+			curveType: 'function',
+			legend: 'none',
+			hAxis: {
+				title: "time"
+			},
+			vAxis: {
+				title: "avg temp"
+			},
+			fontSize: 18,
+			title: 'average'
+		};
+		var avgtraceplot = new google.visualization.LineChart(document.getElementById('avgplot'));
+		avgtraceplot.draw(avgplotdata, avgoptions);
 	});
 });

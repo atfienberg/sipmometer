@@ -14,6 +14,8 @@ from threading import Thread
 
 import numpy as np
 
+import json
+
 app = Flask(__name__)
 # app.debug = True
 socketio = SocketIO(app, async_mode='eventlet')
@@ -25,29 +27,45 @@ running_data = []
 log_thread = None
 keep_logging = False
 
+sipm_map = None
+with open('sipmMapping.json') as json_file:
+    sipm_map = json.load(json_file)
+present_sipms = []
+for i in range(54):
+    present_sipms.append(True if 'sipm%i' % i in sipm_map else False)
+
 # temporary global until I actually use with real beagle board
 temps = []
 
 
 @app.route('/')
 def home():
-    return render_template('sipmgrid.html', sipm_numbers=range(54))
+    return render_template('sipmgrid.html', sipm_numbers=range(54), present_sipms=present_sipms)
 
 
 @app.route('/gaingrid')
 def gain_grid():
-    return render_template('gaingrid.html', sipm_numbers=range(54))
+    return render_template('gaingrid.html', sipm_numbers=range(54), present_sipms=present_sipms)
 
 
 @app.route('/alltemps')
 def all_temps():
     return render_template('alltemps.html')
 
-
 @app.route('/sipm<int:sipm_num>')
 def sipm_graph(sipm_num):
+    return sipm_graph_next(sipm_num, 'next')
+
+
+@app.route('/sipm<int:sipm_num>_<string:next_str>')
+def sipm_graph_next(sipm_num, next_str):
     if sipm_num >= 0 and sipm_num < 54:
-        return render_template('singlesipm.html', num=sipm_num)
+        if 'sipm%i' % sipm_num in sipm_map:
+            return render_template('singlesipm.html', num=sipm_num)
+        elif next_str == 'next':
+            return redirect(url_for('sipm_graph_next', sipm_num=sipm_num+1, next_str=next_str))
+        else:
+            return redirect(url_for('sipm_graph_next', sipm_num=sipm_num-1, next_str=next_str))
     else:
         return render_template('notfound.html')
 
@@ -81,36 +99,45 @@ def reply_logging_status():
 
 @socketio.on('temp plot')
 def temp_plot(msg):
-    data = [['time', 'temp']]
+    data = [['time', 'temp', 'plus', 'minus']]
     # downsample to help with performance
     stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
+    plus = running_data[-1][msg['num']+1] + 0.5
+    minus = running_data[-1][msg['num']+1] - 0.5
     for row in running_data[::stepsize]:
-        data.append([row[0], row[msg['num'] + 1]])
+        data.append([row[0], row[msg['num'] + 1], plus, minus])
     emit('plot ready', {'num': msg['num'], 'data': data})
 
 
 @socketio.on('all temps')
 def all_temps_plot():
     header = ['time']
-    header.extend('sipm %i' % i for i in range(54))
+    header.extend('sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map)
     data = [header]
     # downsample to help with performance
     stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
     for row in running_data[::stepsize]:
-        data.append([element for element in row])
-    emit('all temps ready', {'data': data})
+        data.append([element for element in row if element != 'no sipm'])
+
+    avgdata = [['time', 'average temp']]
+    for row in running_data[::stepsize]:
+        numeric_row = [element for element in row if element != 'no sipm']
+        avgdata.append([row[0], np.sum(numeric_row[1:])/(len(numeric_row)-1)])
+    emit('all temps ready', {'data': data, 'avgdata':avgdata})
 
 
 @socketio.on('all gains')
 def all_gains():
     for i in range(54):
-        emit('sipm gain', {'gain': str(get_gain(i)), 'num': str(i)})
+        if 'sipm%i' % i in sipm_map:
+            emit('sipm gain', {'gain': str(get_gain(i)), 'num': str(i)})
 
 
 @socketio.on('single gain')
 def single_gain(msg):
     num = int(msg['num'])
-    emit('sipm gain', {'gain': str(get_gain(num)), 'num': str(num)})
+    if 'sipm%i' % num in sipm_map:
+        emit('sipm gain', {'gain': str(get_gain(num)), 'num': str(num)})
 
 
 def update_temps():
@@ -128,10 +155,11 @@ def measure_temps():
         running_data[-1].append('%02i:%02i:%02i' %
                                 (now.hour, now.minute, now.second))
         for i, temp in enumerate(temps):
-            temps[i] = round(temp + np.random.uniform(-.1, .1), 2)
-            file.write(', %.2f' % temps[i])
-            socketio.emit(
-                'sipm temp', {'temp': '%.2f' % temps[i], 'num': str(i)})
+            if temp != 'no sipm':
+                temps[i] = round(temp + np.random.uniform(-.1, .1), 2)
+                file.write(', %.2f' % temps[i])
+                socketio.emit(
+                    'sipm temp', {'temp': '%.2f' % temps[i], 'num': str(i)})
         file.write('\n')
     running_data[-1].extend(temps)
 
@@ -160,8 +188,11 @@ def start_logging():
             file.write('date, time')
             del temps[:]
             for sipm_num in range(54):
-                file.write(', sipm%i' % sipm_num)
-                temps.append(round(np.random.uniform(25, 30), 2))
+                if 'sipm%i' % sipm_num in sipm_map:
+                    file.write(', sipm%i' % sipm_num)
+                    temps.append(round(np.random.uniform(25, 30), 2))
+                else:
+                    temps.append('no sipm')
             measure_temps()
         log_thread = Thread(name='temp_updater', target=update_temps)
         keep_logging = True
