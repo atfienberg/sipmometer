@@ -31,7 +31,7 @@ $(document).ready(function() {
 				title: "time"
 			},
 			vAxis: {
-				title: "avg temp"
+				title: "temp"
 			},
 			fontSize: 18,
 			title: 'average, max, min'
