@@ -52,6 +52,7 @@ def gain_grid():
 def all_temps():
     return render_template('alltemps.html')
 
+
 @app.route('/sipm<int:sipm_num>')
 def sipm_graph(sipm_num):
     return sipm_graph_next(sipm_num, 'next')
@@ -119,11 +120,21 @@ def all_temps_plot():
     for row in running_data[::stepsize]:
         data.append([element for element in row if element != 'no sipm'])
 
-    avgdata = [['time', 'average temp']]
+    max_index = 1
+    min_index = 1 
+    for index, val in enumerate(running_data[-1]):
+    	if val != 'no sipm' and index != 0:
+    		if val > running_data[-1][max_index]:
+    			max_index = index
+    		if val < running_data[-1][min_index]:
+    			min_index = index
+    avgdata = [['time', 'average temp', 'sipm%i' %
+                (max_index - 1), 'sipm%i' % (min_index - 1)]]
     for row in running_data[::stepsize]:
         numeric_row = [element for element in row if element != 'no sipm']
-        avgdata.append([row[0], np.sum(numeric_row[1:])/(len(numeric_row)-1)])
-    emit('all temps ready', {'data': data, 'avgdata':avgdata})
+        avgdata.append([row[0], np.sum(numeric_row[1:]) /
+                        (len(numeric_row)-1), row[max_index], row[min_index]])
+    emit('all temps ready', {'data': data, 'avgdata': avgdata})
 
 
 @socketio.on('all gains')

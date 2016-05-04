@@ -34,7 +34,7 @@ $(document).ready(function() {
 				title: "avg temp"
 			},
 			fontSize: 18,
-			title: 'average'
+			title: 'average, max, min'
 		};
 		var avgtraceplot = new google.visualization.LineChart(document.getElementById('avgplot'));
 		avgtraceplot.draw(avgplotdata, avgoptions);
