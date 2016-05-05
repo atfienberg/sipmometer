@@ -34,8 +34,9 @@ present_sipms = []
 for i in range(54):
     present_sipms.append(True if 'sipm%i' % i in sipm_map else False)
 
-# temporary global until I actually use with real beagle board
+# temporary globals until I actually use with real beagle board
 temps = []
+gains = [80 for i in range(54)]
 
 
 @app.route('/')
@@ -100,6 +101,8 @@ def reply_logging_status():
 
 @socketio.on('temp plot')
 def temp_plot(msg):
+    if len(running_data) < 2:
+        return
     data = [['time', 'temp', 'plus', 'minus']]
     # downsample to help with performance
     stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
@@ -112,6 +115,8 @@ def temp_plot(msg):
 
 @socketio.on('all temps')
 def all_temps_plot():
+    if len(running_data) < 2:
+        return
     header = ['time']
     header.extend('sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map)
     data = [header]
@@ -121,13 +126,13 @@ def all_temps_plot():
         data.append([element for element in row if element != 'no sipm'])
 
     max_index = 1
-    min_index = 1 
+    min_index = 1
     for index, val in enumerate(running_data[-1]):
-    	if val != 'no sipm' and index != 0:
-    		if val > running_data[-1][max_index]:
-    			max_index = index
-    		if val < running_data[-1][min_index]:
-    			min_index = index
+        if val != 'no sipm' and index != 0:
+            if val > running_data[-1][max_index]:
+                max_index = index
+            if val < running_data[-1][min_index]:
+                min_index = index
     avgdata = [['time', 'average temp', 'sipm%i' %
                 (max_index - 1), 'sipm%i' % (min_index - 1)]]
     for row in running_data[::stepsize]:
@@ -148,7 +153,34 @@ def all_gains():
 def single_gain(msg):
     num = int(msg['num'])
     if 'sipm%i' % num in sipm_map:
-        emit('sipm gain', {'gain': str(get_gain(num)), 'num': str(num)})
+        emit('sipm gain', {'gain': str(get_gain(num)), 'num': num})
+
+
+@socketio.on('set gain')
+def set_gain_callback(msg):
+    try:
+        sipm_num = int(msg['num'])
+    except ValueError:
+        return
+    try:
+        new_gain = int(msg['new_gain'])
+    except ValueError:
+        return
+    if present_sipms[sipm_num]:
+        set_gain(sipm_num, new_gain)
+        emit('sipm gain', {'gain': str(get_gain(sipm_num)), 'num': sipm_num})
+
+
+@socketio.on('set all gains')
+def set_all_gains(msg):
+    try:
+        new_gain = int(msg['new_gain'])
+    except ValueError:
+        return
+    for sipm_num in range(54):
+        if present_sipms[sipm_num]:
+            set_gain(sipm_num, new_gain)
+            emit('sipm gain', {'gain': str(get_gain(sipm_num)), 'num': sipm_num})
 
 
 def update_temps():
@@ -176,7 +208,17 @@ def measure_temps():
 
 
 def get_gain(sipm_num):
-    return 50
+    try:
+        return gains[sipm_num]
+    except (IndexError, TypeError):
+        return 0
+
+
+def set_gain(sipm_num, new_gain):
+    try:
+        gains[sipm_num] = new_gain
+    except (IndexError, TypeError):
+        pass
 
 
 def kill_logger():

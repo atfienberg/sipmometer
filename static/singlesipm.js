@@ -1,10 +1,10 @@
 $(document).ready(function() {
 	var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-	var sipmNum = $('#sipmnum').text();
+	var sipmNum = parseInt($('#sipmnum').text());
 
 	(function askForPlot() {
-		socket.emit('temp plot', {'num' : parseInt(sipmNum)});
+		socket.emit('temp plot', {'num' : sipmNum});
 		setTimeout(askForPlot, 10000);
 	})();
 
@@ -41,6 +41,13 @@ $(document).ready(function() {
 	socket.on('sipm gain', function(msg) {
 		if (msg.num == sipmNum){
 			$('#gainSetting').text(msg.gain);
+		}
+	});
+
+	$('#newSetting').keydown(function(e) {
+		if (e.which == 13) {
+			socket.emit('set gain', {'num' : sipmNum, 'new_gain' : $('#newSetting').val()});
+			$('#newSetting').val('');
 		}
 	});
 });
