@@ -16,4 +16,17 @@ $(document).ready(function() {
 			$('#setAllGains').val('');
 		}
 	});
+
+	$('#downloadGains').click( function() {
+		console.log('test');
+		var fileName = prompt('enter file name (leave out file extension)', '');
+		fileName = fileName.replace(/ /g, '');
+		//remove unfriendly characters
+		fileName = fileName.replace(/[^a-zA-Z0-9-_.]/g, '');
+		if (!fileName.length) {
+			alert("bad filename!");
+		} else {
+			window.location.assign('/gainfile_' + fileName);
+		}
+	});
 });

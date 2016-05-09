@@ -2,19 +2,18 @@
 {% block body %}	
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='sipmgrid.css') }}">
-<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='gaingrid.js')}}">	
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='preview.js')}}">
 </script>
-<h2 align="center"> <font color="red"> gains </font></h2>
-<b>set all gains:</b> <input type=text id="setAllGains" size="2"></input> <br>
-<br>
+<h2 align="center"> <font color="blue"> gain preview </font></h2>
+<p align="center">{{filename}}</p>
 {% for sipmnumber in sipm_numbers %}
 <div class="xtalbox">
 	<div class="content">
 		<div class="table">
 			<div class="table-cell">
 				{% if present_sipms[sipmnumber] %}
-					<a href={{"sipm" ~ sipmnumber}}>SiPM {{sipmnumber}}</a> <br>
-					<txt id={{"sipm" ~ sipmnumber}}></txt>		
+					<b>SiPM {{sipmnumber}}</b> <br>
+					<font id={{"sipm" ~ sipmnumber}} color="blue">{{gains[sipmnumber]}}</font>		
 				{% endif %}
 			</div>
 		</div>
@@ -23,9 +22,8 @@ href="{{ url_for('static', filename='sipmgrid.css') }}">
 {% endfor %}
 {% endblock body %}
 {% block foot %}
-<button id="downloadGains">download gains to file</button>
-<br><br>
-load gains from file
+<button id="accept" size=4> accept and submit </button> <br><br>
+try another file
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='sipmgrid.css') }}">
 <form action="/preview" method=post enctype=multipart/form-data>

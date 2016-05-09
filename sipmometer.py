@@ -5,12 +5,13 @@
 import eventlet
 eventlet.monkey_patch()
 
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, make_response, request, url_for
 from flask_socketio import SocketIO, emit
 
 from time import sleep
 from datetime import datetime
 from threading import Thread
+from collections import OrderedDict
 
 import numpy as np
 
@@ -41,12 +42,29 @@ gains = [80 for i in range(54)]
 
 @app.route('/')
 def home():
-    return render_template('sipmgrid.html', sipm_numbers=range(54), present_sipms=present_sipms)
+    return render_template('sipmgrid.html', sipm_numbers=range(53,-1,-1), present_sipms=present_sipms)
 
 
 @app.route('/gaingrid')
 def gain_grid():
-    return render_template('gaingrid.html', sipm_numbers=range(54), present_sipms=present_sipms)
+	return render_template('gaingrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms)
+
+
+@app.route('/preview', methods=['POST'])
+def preview_gains():
+	filestr = str(request.files['file'].read())
+	filestr = filestr[filestr.find('{'):filestr.rfind('}')+1].replace(r'\n', '')
+	try:
+		gain_map = json.loads(filestr)
+	except:
+		return render_template('badfile.html')
+	file_present_sipms = [False for i in range(54)]
+	new_gains = [0 for i in range(54)]
+	for sipm_num in range(54):
+		if 'sipm%i' % sipm_num in gain_map:
+			file_present_sipms[sipm_num] = True
+			new_gains[sipm_num] = gain_map['sipm%i' % sipm_num]
+	return render_template('previewgains.html', sipm_numbers=range(53,-1,-1), present_sipms=file_present_sipms, gains=new_gains, filename=request.files['file'].filename)
 
 
 @app.route('/alltemps')
@@ -89,6 +107,19 @@ def restart_logging():
     return redirect(url_for('home'))
 
 
+@app.route('/gainfile_<string:filename>')
+def deliver_gain_file(filename):
+    gain_dict = OrderedDict()
+    for i in range(54):
+        if present_sipms[i]:
+            gain_dict['sipm%i' % i] = gains[i]
+    response = make_response(json.dumps(gain_dict, indent=4, separators=(',', ': ')));
+    if not filename.endswith('.json'):
+        filename += '.json'
+    response.headers['Content-Disposition'] = "attachment; filename=%s" % filename
+    return response
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('error404.html'), 404
@@ -106,8 +137,8 @@ def temp_plot(msg):
     data = [['time', 'temp', 'plus', 'minus']]
     # downsample to help with performance
     stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
-    plus = running_data[-1][msg['num']+1] + 0.5
-    minus = running_data[-1][msg['num']+1] - 0.5
+    plus = running_data[-1][msg['num']+1] + 0.3
+    minus = running_data[-1][msg['num']+1] - 0.3
     for row in running_data[::stepsize]:
         data.append([row[0], row[msg['num'] + 1], plus, minus])
     emit('plot ready', {'num': msg['num'], 'data': data})
@@ -181,6 +212,13 @@ def set_all_gains(msg):
         if present_sipms[sipm_num]:
             set_gain(sipm_num, new_gain)
             emit('sipm gain', {'gain': str(get_gain(sipm_num)), 'num': sipm_num})
+
+
+@socketio.on('set these gains')
+def set_these_gains(msg):
+	for sipm_num in range(54):
+		if present_sipms[sipm_num] and 'sipm%i' % sipm_num in msg:
+			set_gain(sipm_num, msg['sipm%i' % sipm_num])
 
 
 def update_temps():
