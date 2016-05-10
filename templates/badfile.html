@@ -2,4 +2,13 @@
 {% block body %}
 <b><font color="red">invalid file</font></b>
 {% endblock body %}
-
+{% block foot %}
+<br><br>
+try another file
+<link rel=stylesheet type=text/css 
+href="{{ url_for('static', filename='sipmgrid.css') }}">
+<form action="/preview" method=post enctype=multipart/form-data>
+      <p><input type=file name=file>
+         <input type=submit value=preview>
+</form>
+{% endblock foot %}

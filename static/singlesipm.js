@@ -4,7 +4,7 @@ $(document).ready(function() {
 	var sipmNum = parseInt($('#sipmnum').text());
 
 	(function askForPlot() {
-		socket.emit('temp plot', {'num' : sipmNum});
+		socket.emit('temp plot', {'num' : sipmNum, 'hours': $('#howManyHours').val()});
 		setTimeout(askForPlot, 10000);
 	})();
 
@@ -41,6 +41,12 @@ $(document).ready(function() {
 	socket.on('sipm gain', function(msg) {
 		if (msg.num == sipmNum){
 			$('#gainSetting').text(msg.gain);
+		}
+	});
+
+	$('#howManyHours').keydown(function(e) {
+		if (e.which == 13) {
+			socket.emit('temp plot', {'num' : sipmNum, 'hours': $('#howManyHours').val()});	
 		}
 	});
 

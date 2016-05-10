@@ -9,9 +9,11 @@ from flask import Flask, render_template, redirect, make_response, request, url_
 from flask_socketio import SocketIO, emit
 
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Thread
 from collections import OrderedDict
+
+from bisect import bisect_left
 
 import numpy as np
 
@@ -25,6 +27,7 @@ socketio = SocketIO(app, async_mode='eventlet')
 current_file = None
 logging_temps = False
 running_data = []
+sample_datetimes = []
 log_thread = None
 keep_logging = False
 
@@ -54,6 +57,7 @@ def gain_grid():
 def preview_gains():
 	filestr = str(request.files['file'].read())
 	filestr = filestr[filestr.find('{'):filestr.rfind('}')+1].replace(r'\n', '')
+	filestr = filestr.replace(r'\t', '')
 	try:
 		gain_map = json.loads(filestr)
 	except:
@@ -134,39 +138,43 @@ def reply_logging_status():
 def temp_plot(msg):
     if len(running_data) < 2:
         return
+    start_index = get_start_index(msg)
     data = [['time', 'temp', 'plus', 'minus']]
     # downsample to help with performance
-    stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
-    plus = running_data[-1][msg['num']+1] + 0.3
-    minus = running_data[-1][msg['num']+1] - 0.3
-    for row in running_data[::stepsize]:
+    plot_data = running_data[start_index:]
+    stepsize = len(plot_data) // 100 if len(plot_data) > 100 else 1
+    plus = plot_data[-1][msg['num']+1] + 0.3
+    minus = plot_data[-1][msg['num']+1] - 0.3
+    for row in plot_data[::stepsize]:
         data.append([row[0], row[msg['num'] + 1], plus, minus])
     emit('plot ready', {'num': msg['num'], 'data': data})
 
 
 @socketio.on('all temps')
-def all_temps_plot():
+def all_temps_plot(msg):
     if len(running_data) < 2:
         return
+    start_index = get_start_index(msg)
     header = ['time']
     header.extend('sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map)
     data = [header]
     # downsample to help with performance
-    stepsize = len(running_data) // 100 if len(running_data) > 100 else 1
-    for row in running_data[::stepsize]:
+    plot_data = running_data[start_index:]
+    stepsize = len(plot_data) // 100 if len(plot_data) > 100 else 1
+    for row in plot_data[::stepsize]:
         data.append([element for element in row if element != 'no sipm'])
 
     max_index = 1
     min_index = 1
-    for index, val in enumerate(running_data[-1]):
+    for index, val in enumerate(plot_data[-1]):
         if val != 'no sipm' and index != 0:
-            if val > running_data[-1][max_index]:
+            if val > plot_data[-1][max_index]:
                 max_index = index
-            if val < running_data[-1][min_index]:
+            if val < plot_data[-1][min_index]:
                 min_index = index
     avgdata = [['time', 'average temp', 'sipm%i' %
                 (max_index - 1), 'sipm%i' % (min_index - 1)]]
-    for row in running_data[::stepsize]:
+    for row in plot_data[::stepsize]:
         numeric_row = [element for element in row if element != 'no sipm']
         avgdata.append([row[0], np.sum(numeric_row[1:]) /
                         (len(numeric_row)-1), row[max_index], row[min_index]])
@@ -221,6 +229,19 @@ def set_these_gains(msg):
 			set_gain(sipm_num, msg['sipm%i' % sipm_num])
 
 
+def get_start_index(msg):
+    try:
+        hours = float(msg['hours'])
+        hours = hours if hours > 0 else None
+    except ValueError:
+        hours = None
+    start_index = 0
+    if hours is not None:
+        target_time = datetime.now() - timedelta(hours=hours)
+        start_index = bisect_left(sample_datetimes, target_time)
+    return start_index if start_index < len(running_data) else 0
+
+
 def update_temps():
     while keep_logging:
         sleep(1)
@@ -230,6 +251,7 @@ def update_temps():
 def measure_temps():
     with open(current_file, 'a') as file:
         now = datetime.now()
+        sample_datetimes.append(now)
         file.write('%02i/%02i/%02i' % (now.month, now.day, now.year))
         file.write(', %02i:%02i:%02i' % (now.hour, now.minute, now.second))
         running_data.append([])
@@ -272,6 +294,7 @@ def start_logging():
         logging_temps = True
         kill_logger()
         del running_data[:]
+        del sample_datetimes[:]
         now = datetime.now()
         current_file = 'temps/tempFile%02i_%02i_%02i_%02i:%02i:%02i.txt' % (
             now.month, now.day, now.year, now.hour, now.minute, now.second)

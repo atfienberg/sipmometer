@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 {% block body %}	
 <h2 align="center"> <font color="red"> all temps </font></h2>
+<br>
+Last <input id="howManyHours" size=5></input> hours
 <div id="plot" style="width: 50em; height: 30em; margin: 0"></div>
 <div id="avgplot" style="width: 50em; height: 30em; margin: 0"></div>
 <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='alltemps.js')}}">

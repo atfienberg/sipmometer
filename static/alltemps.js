@@ -2,7 +2,7 @@ $(document).ready(function() {
 	var socket = io.connect('http://' + document.domain + ':' + location.port);
 
 	(function askForPlot() {
-		socket.emit('all temps');
+		socket.emit('all temps', {'hours': $('#howManyHours').val()});
 		setTimeout(askForPlot, 10000);
 	})();
 
@@ -38,5 +38,11 @@ $(document).ready(function() {
 		};
 		var avgtraceplot = new google.visualization.LineChart(document.getElementById('avgplot'));
 		avgtraceplot.draw(avgplotdata, avgoptions);
+	});
+
+	$('#howManyHours').keydown(function(e) {
+		if (e.which == 13) {
+			socket.emit('all temps', {'hours': $('#howManyHours').val()});
+		}
 	});
 });
