@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+<style> 
+	table {
+		border-collapse: collapse;
+		border: 2px black solid;
+		font: 14px sans-serif;
+	}
+	td {
+		border: 1px black solid;
+		padding: 5px;
+	}
+</style>
+<table>
+{% for row in table %}
+	<tr>
+		{% for col in row %}
+		<td> {{col}} </td>
+		{% endfor %}
+	</tr>
+{% endfor %}
+</table>	
+{% endblock body %}

@@ -12,7 +12,6 @@ from time import sleep
 from datetime import datetime, timedelta
 from threading import Thread
 from collections import OrderedDict
-
 from bisect import bisect_left
 
 import numpy as np
@@ -37,6 +36,12 @@ with open('sipmMapping.json') as json_file:
 present_sipms = []
 for i in range(54):
     present_sipms.append(True if 'sipm%i' % i in sipm_map else False)
+
+# prepare gain table
+gain_table = [['gain setting', 'dB', 'amplitude ratio']]
+for setting in range(81):
+	dB = 26 - setting/4.0
+	gain_table.append([setting, dB, round(10**(dB/20.0),2)])
 
 # temporary globals until I actually use with real beagle board
 temps = []
@@ -122,6 +127,11 @@ def deliver_gain_file(filename):
         filename += '.json'
     response.headers['Content-Disposition'] = "attachment; filename=%s" % filename
     return response
+
+
+@app.route('/gaintable')
+def gaintable():
+	return render_template('gaintable.html', table=gain_table)
 
 
 @app.errorhandler(404)
