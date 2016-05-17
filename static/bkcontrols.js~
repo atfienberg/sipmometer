@@ -1,0 +1,14 @@
+$(document).ready(function() {
+	var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        (function getBkStatus() {
+		socket.emit('bk status');
+		setTimeout(getBkStatus, 5000);
+	})();
+    
+        socket.on('bk status', function(msg){
+	        var num = toString(msg.num);
+	        console.log(num);
+	        console.log(msg.current);
+	});
+});

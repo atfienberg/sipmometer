@@ -16,19 +16,23 @@ from bisect import bisect_left
 
 import numpy as np
 
+import serial
+
 import json
 
 app = Flask(__name__)
-# app.debug = True
+# app.debug = True     
+
 socketio = SocketIO(app, async_mode='eventlet')
 
-# some global variables for keeping track of temp logging
+# some global variables for keeping track of stuff
 current_file = None
 logging_temps = False
 running_data = []
 sample_datetimes = []
 log_thread = None
 keep_logging = False
+bks = []
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
@@ -36,6 +40,7 @@ with open('sipmMapping.json') as json_file:
 present_sipms = []
 for i in range(54):
     present_sipms.append(True if 'sipm%i' % i in sipm_map else False)
+
 
 # prepare gain table
 gain_table = [['gain setting', 'dB', 'amplitude ratio']]
@@ -134,9 +139,14 @@ def gaintable():
 	return render_template('gaintable.html', table=gain_table)
 
 
+@app.route('/bkcontrols')
+def bkcontrols():
+    return render_template('bkcontrols.html', bks=[i for i, j in enumerate(bks) if j is not None])
+
+
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('error404.html'), 404
+    return render_template('notfound.html'), 404
 
 
 @socketio.on('logging?')
@@ -238,6 +248,20 @@ def set_these_gains(msg):
 		if present_sipms[sipm_num] and 'sipm%i' % sipm_num in msg:
 			set_gain(sipm_num, msg['sipm%i' % sipm_num])
 
+@socketio.on('bk status')
+def bk_status():
+    for num, bk in enumerate(bks):
+        if bk is not None:
+            status = {'num' : str(num)}
+            bk.write(b'OUTP:STAT?\n')
+            status['outstat'] = read_response(bk)
+            bk.write(b'SOUR:VOLT?\n')
+            status['voltage'] = read_response(bk)
+            bk.write(b'SOUR:CURR?\n')
+            status['current'] = read_response(bk)
+            bk.write(b'MEAS:VOLT?\n')
+            status['measvolt'] = read_response(bk)
+            emit('bk status', status)
 
 def get_start_index(msg):
     try:
@@ -323,5 +347,33 @@ def start_logging():
         log_thread.start()
 
 
+def read_response(serial_port):
+    response = ''
+    while len(response) == 0 or response[-1] != '\n':
+        new_char = (serial_port.read(1)).decode("utf-8")
+        if new_char == '':
+            return 'failed read'
+        else:
+            response += new_char
+    return response[:-1]
+
+
+def open_bks():
+    for bk in bks:
+        try:
+            bk.close()
+        except:
+            pass
+    del bks[:]
+    for num in range(4):
+        try:
+            bks.append(serial.Serial('/dev/bk%i' % num, 4800, timeout=0.5))
+        except:
+            bks.append(None)
+        if bks[num] is not None:
+            bks[num].write(b'SOUR:CURR 0.005\n')
+
+
 if __name__ == '__main__':
+    open_bks()
     socketio.run(app)

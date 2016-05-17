@@ -29,4 +29,6 @@ $(document).ready(function() {
 			window.location.assign('/gainfile_' + fileName);
 		}
 	});
+
+       
 });
