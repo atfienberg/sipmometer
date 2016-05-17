@@ -28,4 +28,29 @@ $(document).ready(function() {
 		$('#bk_measured'.concat(num)).text(msg.measvolt + ' V');
 		$('#bk_measured'.concat(num)).show();
 	});
+
+	function getPowerToggleFun(num) {
+		return function() {
+			socket.emit('toggle bk power', {'num': num});
+		};
+	}
+
+	function getNewSetPtFun(num, box) {
+		return function(e) {
+			if(e.which == 13) {
+				socket.emit('new voltage pt', {'new setting' : box.val(), 'num' : num });
+				box.val('');
+			}
+		};
+	} 
+
+	for (var i = 0; i < 4; ++i){
+		var pToggleFunction = getPowerToggleFun(i);
+		$('#bk_power_button'.concat(i.toString())).click(pToggleFunction);
+
+		var newSetPtBox = $('#new_set_pt'.concat(i.toString()));
+		var newSetPtFunction = getNewSetPtFun(i, newSetPtBox);
+		newSetPtBox.keydown(newSetPtFunction);
+	}
+
 });

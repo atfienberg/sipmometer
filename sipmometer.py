@@ -248,20 +248,34 @@ def set_these_gains(msg):
 		if present_sipms[sipm_num] and 'sipm%i' % sipm_num in msg:
 			set_gain(sipm_num, msg['sipm%i' % sipm_num])
 
+
 @socketio.on('bk status')
 def bk_status():
     for num, bk in enumerate(bks):
         if bk is not None:
-            status = {'num' : str(num)}
-            bk.write(b'OUTP:STAT?\n')
-            status['outstat'] = read_response(bk)
-            bk.write(b'SOUR:VOLT?\n')
-            status['voltage'] = read_response(bk)
-            bk.write(b'SOUR:CURR?\n')
-            status['current'] = read_response(bk)
-            bk.write(b'MEAS:VOLT?\n')
-            status['measvolt'] = read_response(bk)
-            emit('bk status', status)
+            emit('bk status', query_bk_status(bk, num))
+
+
+@socketio.on('new voltage pt')
+def new_voltage_pt(msg):
+    bk = bks[int(msg['num'])]
+    if bk is not None:
+        bk.Write(b'SOUR:VOLT %.3f\n' % msg['new setting'])
+        emit('bk status', query_bk_status(bk, num))
+
+
+def query_bk_status(bk, num):
+    status = {'num' : str(num)}
+    bk.write(b'OUTP:STAT?\n')
+    status['outstat'] = read_response(bk)
+    bk.write(b'SOUR:VOLT?\n')
+    status['voltage'] = read_response(bk)
+    bk.write(b'SOUR:CURR?\n')
+    status['current'] = read_response(bk)
+    bk.write(b'MEAS:VOLT?\n')
+    status['measvolt'] = read_response(bk)
+    return status
+
 
 def get_start_index(msg):
     try:
