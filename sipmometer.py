@@ -17,8 +17,9 @@ from bisect import bisect_left
 import numpy as np
 
 import serial
-
 import json
+
+import beagle_class
 
 app = Flask(__name__)
 # app.debug = True     
@@ -33,6 +34,8 @@ sample_datetimes = []
 log_thread = None
 keep_logging = False
 bks = []
+beagle = beagle_class.Beagle('tcp://192.168.1.22:6669',100) 
+
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
@@ -48,11 +51,6 @@ for setting in range(81):
 	dB = 26 - setting/4.0
 	gain_table.append([setting, dB, round(10**(dB/20.0),2)])
 
-# temporary globals until I actually use with real beagle board
-temps = []
-gains = [80 for i in range(54)]
-
-
 @app.route('/')
 def home():
     return render_template('sipmgrid.html', sipm_numbers=range(53,-1,-1), present_sipms=present_sipms)
@@ -65,9 +63,7 @@ def gain_grid():
 
 @app.route('/preview', methods=['POST'])
 def preview_gains():
-	filestr = str(request.files['file'].read())
-	filestr = filestr[filestr.find('{'):filestr.rfind('}')+1].replace(r'\n', '')
-	filestr = filestr.replace(r'\t', '')
+	filestr = request.files['file'].read().decode('utf-8')
 	try:
 		gain_map = json.loads(filestr)
 	except:
@@ -126,7 +122,7 @@ def deliver_gain_file(filename):
     gain_dict = OrderedDict()
     for i in range(54):
         if present_sipms[i]:
-            gain_dict['sipm%i' % i] = gains[i]
+            gain_dict['sipm%i' % i] = int(get_gain(i))
     response = make_response(json.dumps(gain_dict, indent=4, separators=(',', ': ')));
     if not filename.endswith('.json'):
         filename += '.json'
@@ -189,8 +185,9 @@ def all_temps_plot(msg):
     for row in plot_data[::stepsize]:
         data.append([element for element in row if element != 'no sipm'])
 
-    max_index = 1
-    min_index = 1
+    max_index = next((i for i, val in enumerate(running_data[-1][1:]) if val != 'no sipm')) + 1
+    min_index = max_index
+    
     for index, val in enumerate(plot_data[-1]):
         if val != 'no sipm' and index != 0:
             if val > plot_data[-1][max_index]:
@@ -210,14 +207,14 @@ def all_temps_plot(msg):
 def all_gains():
     for i in range(54):
         if 'sipm%i' % i in sipm_map:
-            emit('sipm gain', {'gain': str(get_gain(i)), 'num': str(i)})
+            emit('sipm gain', {'gain': get_gain(i), 'num': str(i)})
 
 
 @socketio.on('single gain')
 def single_gain(msg):
     num = int(msg['num'])
     if 'sipm%i' % num in sipm_map:
-        emit('sipm gain', {'gain': str(get_gain(num)), 'num': num})
+        emit('sipm gain', {'gain': get_gain(num), 'num': num})
 
 
 @socketio.on('set gain')
@@ -232,7 +229,7 @@ def set_gain_callback(msg):
         return
     if present_sipms[sipm_num]:
         set_gain(sipm_num, new_gain)
-        emit('sipm gain', {'gain': str(get_gain(sipm_num)), 'num': sipm_num})
+        emit('sipm gain', {'gain': get_gain(sipm_num), 'num': sipm_num})
 
 
 @socketio.on('set all gains')
@@ -244,14 +241,14 @@ def set_all_gains(msg):
     for sipm_num in range(54):
         if present_sipms[sipm_num]:
             set_gain(sipm_num, new_gain)
-            emit('sipm gain', {'gain': str(get_gain(sipm_num)), 'num': sipm_num})
+            emit('sipm gain', {'gain': get_gain(sipm_num), 'num': sipm_num})
 
 
 @socketio.on('set these gains')
 def set_these_gains(msg):
 	for sipm_num in range(54):
 		if present_sipms[sipm_num] and 'sipm%i' % sipm_num in msg:
-			set_gain(sipm_num, msg['sipm%i' % sipm_num])
+			set_gain(sipm_num, int(msg['sipm%i' % sipm_num]))
 
 
 @socketio.on('bk status')
@@ -277,7 +274,7 @@ def toggle_bk_power(msg):
             bk.write(b'OUTP:STAT 1\n')
         else:
             bk.write(b'OUTP:STAT 0\n')
-        emit('bk status', query_bk_status(bk, int(msg['num'])))
+            emit('bk status', query_bk_status(bk, int(msg['num'])))
 
 
 def query_bk_status(bk, num):
@@ -321,9 +318,14 @@ def measure_temps():
         running_data.append([])
         running_data[-1].append('%02i:%02i:%02i' %
                                 (now.hour, now.minute, now.second))
+        temps = []
+        for i in range(54):
+            try:
+                temps.append(float(beagle.read_temp(i)) if present_sipms[i] else 'no sipm')
+            except ValueError:
+                temps.append(-1)
         for i, temp in enumerate(temps):
             if temp != 'no sipm':
-                temps[i] = round(temp + np.random.uniform(-.1, .1), 2)
                 file.write(', %.2f' % temps[i])
                 socketio.emit(
                     'sipm temp', {'temp': '%.2f' % temps[i], 'num': str(i)})
@@ -332,18 +334,13 @@ def measure_temps():
 
 
 def get_gain(sipm_num):
-    try:
-        return gains[sipm_num]
-    except (IndexError, TypeError):
-        return 0
+    if present_sipms[sipm_num]:
+        return beagle.read_gain(sipm_num)
 
 
 def set_gain(sipm_num, new_gain):
-    try:
-        gains[sipm_num] = new_gain
-    except (IndexError, TypeError):
-        pass
-
+    if present_sipms[sipm_num] and (0 <= new_gain <= 80):
+        return beagle.set_gain(sipm_num, new_gain)
 
 def kill_logger():
     global keep_logging, log_thread
@@ -364,13 +361,9 @@ def start_logging():
             now.month, now.day, now.year, now.hour, now.minute, now.second)
         with open(current_file, 'w') as file:
             file.write('date, time')
-            del temps[:]
             for sipm_num in range(54):
                 if 'sipm%i' % sipm_num in sipm_map:
                     file.write(', sipm%i' % sipm_num)
-                    temps.append(round(np.random.uniform(25, 30), 2))
-                else:
-                    temps.append('no sipm')
             measure_temps()
         log_thread = Thread(name='temp_updater', target=update_temps)
         keep_logging = True

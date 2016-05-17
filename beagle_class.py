@@ -42,10 +42,10 @@ class Beagle:
 
         
 def main():
-    b = Beagle('tcp://192.168.7.2:6669')
-    print(b.read_temp(0))
-    print(b.read_gain(0))
-    print(b.set_gain(0,50))
+    b = Beagle('tcp://192.168.1.22:6669')
+    print(b.read_temp(10))
+    print(b.read_gain(10))
+    print(b.set_gain(10,50))
 
 
 if __name__ == "__main__":
