@@ -144,6 +144,11 @@ def bkcontrols():
     return render_template('bkcontrols.html', bks=[i for i, j in enumerate(bks) if j is not None])
 
 
+@app.route('/findbks')
+def findbks():
+    open_bks()
+    return redirect(url_for('bkcontrols'))
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('notfound.html'), 404
@@ -260,8 +265,19 @@ def bk_status():
 def new_voltage_pt(msg):
     bk = bks[int(msg['num'])]
     if bk is not None:
-        bk.Write(b'SOUR:VOLT %.3f\n' % msg['new setting'])
-        emit('bk status', query_bk_status(bk, num))
+        write_string = 'SOUR:VOLT %.3f\n' % float(msg['new setting'])
+        bk.write(write_string.encode('utf-8'))
+        emit('bk status', query_bk_status(bk, int(msg['num'])))
+
+@socketio.on('toggle bk power')
+def toggle_bk_power(msg):
+    bk = bks[int(msg['num'])]
+    if bk is not None:
+        if msg['on']:
+            bk.write(b'OUTP:STAT 1\n')
+        else:
+            bk.write(b'OUTP:STAT 0\n')
+        emit('bk status', query_bk_status(bk, int(msg['num'])))
 
 
 def query_bk_status(bk, num):

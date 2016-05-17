@@ -8,7 +8,6 @@ $(document).ready(function() {
 
 	socket.on('bk status', function(msg){
 		var num = msg.num;
-		console.log('#bk_output'.concat(num));
 		if(msg.outstat == '1'){
 			$('#bk_output'.concat(num)).text('ON');
 			$('#bk_power_button'.concat(num)).text('switch OFF');
@@ -29,9 +28,9 @@ $(document).ready(function() {
 		$('#bk_measured'.concat(num)).show();
 	});
 
-	function getPowerToggleFun(num) {
+	function getPowerToggleFun(num, box) {
 		return function() {
-			socket.emit('toggle bk power', {'num': num});
+			socket.emit('toggle bk power', {'num': num, 'on' : box.text() === 'switch ON'});
 		};
 	}
 
@@ -45,8 +44,9 @@ $(document).ready(function() {
 	} 
 
 	for (var i = 0; i < 4; ++i){
-		var pToggleFunction = getPowerToggleFun(i);
-		$('#bk_power_button'.concat(i.toString())).click(pToggleFunction);
+	        var toggleBox = $('#bk_power_button'.concat(i.toString()));
+          	var pToggleFunction = getPowerToggleFun(i, toggleBox)
+		toggleBox.click(pToggleFunction);
 
 		var newSetPtBox = $('#new_set_pt'.concat(i.toString()));
 		var newSetPtFunction = getNewSetPtFun(i, newSetPtBox);

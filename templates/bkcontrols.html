@@ -17,7 +17,10 @@
 </div>
 <br>
 {% endfor %}
-{% if bk_num|length == 0 %}
+{% if bks|length == 0 %}
 <b> no bks found </b>
 {% endif %}
 {% endblock body %}
+{% block foot %}
+<a href="/findbks">find bks</a>
+{% endblock foot %}
