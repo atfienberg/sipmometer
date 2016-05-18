@@ -2,3 +2,4 @@ temps/*
 gainFiles/*
 *~
 __pycache__
+*.pyc

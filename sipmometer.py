@@ -364,6 +364,7 @@ def start_logging():
             for sipm_num in range(54):
                 if 'sipm%i' % sipm_num in sipm_map:
                     file.write(', sipm%i' % sipm_num)
+            file.write('\n')
             measure_temps()
         log_thread = Thread(name='temp_updater', target=update_temps)
         keep_logging = True
