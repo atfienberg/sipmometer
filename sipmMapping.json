@@ -1,7 +1,39 @@
 {
-	"sipm2" : 2,
-	"sipm3" : 3,
-	"sipm5" : 5,
-	"sipm25" : 25,
-	"sipm26" : 26
+    "sipm0" : 15,
+    "sipm1" : 14,
+    "sipm2" : 13,
+    "sipm3" : 12,
+    "sipm4" : 11,
+    "sipm5" : 7,
+    "sipm6" : 6,
+    "sipm7" : 5,
+    "sipm8" : 4,
+    "sipm9" : 10,
+    "sipm10": 9,
+    "sipm11": 8,
+    "sipm12": 31,
+    "sipm13": 30,
+    "sipm14": 3,
+    "sipm15": 2,
+    "sipm16-notworkin" : 1,
+    "sipm17-notworkin": 0,
+    "sipm18": 29,
+    "sipm19": 28,
+    "sipm20": 27,
+    "sipm21": 26,
+    "sipm22": 25,
+    "sipm23": 23,
+    "sipm24": 22,
+    "sipm25-notworkin": 21,
+    "sipm26": 20,
+    "sipm27-notworkin": 24,
+    "sipm32": 19,
+    "sipm33": 18,
+    "sipm34-notworkin": 17,
+    "sipm35-notworkin": 16
 }
+    
+    
+
+
+    

@@ -321,7 +321,7 @@ def measure_temps():
         temps = []
         for i in range(54):
             try:
-                temps.append(float(beagle.read_temp(i)) if present_sipms[i] else 'no sipm')
+                temps.append(float(beagle.read_temp(sipm_map['sipm%i' % i])) if present_sipms[i] else 'no sipm')
             except ValueError:
                 temps.append(-1)
         for i, temp in enumerate(temps):
@@ -335,12 +335,12 @@ def measure_temps():
 
 def get_gain(sipm_num):
     if present_sipms[sipm_num]:
-        return beagle.read_gain(sipm_num)
+        return beagle.read_gain(sipm_map['sipm%i' % sipm_num])
 
 
 def set_gain(sipm_num, new_gain):
     if present_sipms[sipm_num] and (0 <= new_gain <= 80):
-        return beagle.set_gain(sipm_num, new_gain)
+        return beagle.set_gain(sipm_map['sipm%i' % sipm_num], new_gain)
 
 def kill_logger():
     global keep_logging, log_thread
