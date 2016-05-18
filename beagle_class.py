@@ -39,6 +39,14 @@ class Beagle:
         except ValueError:
             return None
 
+    def read_pga(self, sipm_num):
+        self.socket.send_string('sipm %i mem' % sipm_num)
+        try:
+            return self.socket.recv()
+        except zmq.error.Again:
+            return "timeout"
+        except ValueError:
+            return None
 
         
 def main():

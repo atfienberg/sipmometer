@@ -34,6 +34,7 @@ sample_datetimes = []
 log_thread = None
 keep_logging = False
 bks = []
+sipm_serials = []
 beagle = beagle_class.Beagle('tcp://192.168.1.22:6669',100) 
 
 
@@ -53,12 +54,12 @@ for setting in range(81):
 
 @app.route('/')
 def home():
-    return render_template('sipmgrid.html', sipm_numbers=range(53,-1,-1), present_sipms=present_sipms)
+    return render_template('sipmgrid.html', sipm_numbers=range(53,-1,-1), present_sipms=present_sipms, serials=sipm_serials)
 
 
 @app.route('/gaingrid')
 def gain_grid():
-	return render_template('gaingrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms)
+	return render_template('gaingrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials)
 
 
 @app.route('/preview', methods=['POST'])
@@ -91,7 +92,7 @@ def sipm_graph(sipm_num):
 def sipm_graph_next(sipm_num, next_str):
     if sipm_num >= 0 and sipm_num < 54:
         if 'sipm%i' % sipm_num in sipm_map:
-            return render_template('singlesipm.html', num=sipm_num)
+            return render_template('singlesipm.html', num=sipm_num, serial=sipm_serials[sipm_num])
         elif next_str == 'next':
             return redirect(url_for('sipm_graph_next', sipm_num=sipm_num+1, next_str=next_str))
         else:
@@ -398,6 +399,20 @@ def open_bks():
             bks[num].write(b'SOUR:CURR 0.005\n')
 
 
+def fill_sipm_serials():
+    del sipm_serials[:]
+    for sipm_num in range(54):
+        if present_sipms[sipm_num]:
+            serial = beagle.read_pga(sipm_map['sipm%i' % sipm_num])
+            try:
+                sipm_serials.append(int(serial.split()[0]))
+            except:
+                sipm_serials.append(None)
+        else:
+            sipm_serials.append(None)
+
+
 if __name__ == '__main__':
     open_bks()
+    fill_sipm_serials()
     socketio.run(app)

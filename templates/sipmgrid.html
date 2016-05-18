@@ -11,7 +11,7 @@ href="{{ url_for('static', filename='sipmgrid.css') }}">
 		<div class="table">
 			<div class="table-cell">
 			{% if present_sipms[sipmnumber] %}
-				<a href={{"sipm" ~ sipmnumber}}>SiPM {{sipmnumber}}</a> <br>
+				<a href={{"sipm" ~ sipmnumber}}>SiPM {{serials[sipmnumber]}}</a> <br>
 				<txt id={{"sipm" ~ sipmnumber}}></txt>	
 			{% endif %}	
 			</div>

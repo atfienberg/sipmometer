@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}	
-<h2 align="center"> <font color="red"> SiPM <txt id="sipmnum">{{num}}</txt> </font></h2>
+<h2 align="center"> <font color="red"> SiPM {{serial}} </font></h2>
+<h3 align="center"> Crystal Position <txt id="sipmnum"> {{num}}</txt></h3>
 <br>
 Last <input id="howManyHours" size=5></input> hours
 <div id="plot" style="width: 50em; height: 30em; margin: 0"></div>
