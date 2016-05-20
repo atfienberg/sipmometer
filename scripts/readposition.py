@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from serial import Serial
 
 def read_response(serial_port):
