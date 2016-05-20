@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 SERIALS = ['BK PRECISION,9124,600164017687110004,V1.74',
-           'BK PRECISION,9124,600164017687110014,V1.74']
+           'BK PRECISION,9124,600164017687110014,V1.74',
+           'BK PRECISION,9124,600164017707010013,V1.74',
+           'BK PRECISION,9124,600164017707010016,V1.74']
 
 import sys
 import serial
@@ -27,7 +29,7 @@ def main():
     bk.write('*IDN?\n')
     resp = read_response(bk)
     if resp[:-1] in SERIALS:      
-        print('bknum=%i' % SERIALS.index(resp[:-1]))
+        print('bknum=%i' % (SERIALS.index(resp[:-1]) + 1))
     else:
         subprocess.call(['/home/midas/aaronTests/bkincrement.sh'])
     return

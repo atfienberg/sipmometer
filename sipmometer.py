@@ -392,7 +392,7 @@ def open_bks():
     del bks[:]
     for num in range(4):
         try:
-            bks.append(serial.Serial('/dev/bk%i' % num, 4800, timeout=0.5))
+            bks.append(serial.Serial('/dev/bk%i' % (num + 1), 4800, timeout=0.5))
         except:
             bks.append(None)
         if bks[num] is not None:
