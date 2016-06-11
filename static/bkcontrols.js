@@ -23,6 +23,9 @@ $(document).ready(function() {
 		$('#bk_set_pt'.concat(num)).show();
 		$('#bk_i_limit'.concat(num)).text(msg.current + ' A');
 		$('#bk_i_limit'.concat(num)).show();
+	    
+	    	$('#bk_i_output'.concat(num)).text(msg.meascurr + ' A');
+	        $('#bk_i_output'.concat(num)).show();
 
 		$('#bk_measured'.concat(num)).text(msg.measvolt + ' V');
 		$('#bk_measured'.concat(num)).show();

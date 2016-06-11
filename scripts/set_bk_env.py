@@ -31,7 +31,7 @@ def main():
     if resp[:-1] in SERIALS:      
         print('bknum=%i' % (SERIALS.index(resp[:-1]) + 1))
     else:
-        subprocess.call(['/home/midas/aaronTests/bkincrement.sh'])
+        subprocess.call(['/home/newg2/Workspace/aaron-work/sipmometer/scripts/bkincrement.sh'])
     return
 
 

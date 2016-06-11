@@ -5,12 +5,12 @@ $(document).ready(function() {
 
 	(function askForPlot() {
 		socket.emit('temp plot', {'num' : sipmNum, 'hours': $('#howManyHours').val()});
-		setTimeout(askForPlot, 10000);
+		setTimeout(askForPlot, 20000);
 	})();
 
 	(function askForGain() {
 		socket.emit('single gain', {"num" : sipmNum});
-		setTimeout(askForGain, 2000);
+		setTimeout(askForGain, 10000);
 	})();
 
 	socket.on('plot ready', function(msg) {
