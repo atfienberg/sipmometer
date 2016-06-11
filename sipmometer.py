@@ -10,7 +10,7 @@ from flask_socketio import SocketIO, emit
 
 from time import sleep
 from datetime import datetime, timedelta
-from threading import Thread
+from threading import Thread, Lock
 from collections import OrderedDict
 from bisect import bisect_left
 
@@ -18,6 +18,7 @@ import numpy as np
 
 import serial
 import json
+import subprocess
 
 import beagle_class
 
@@ -34,9 +35,9 @@ sample_datetimes = []
 log_thread = None
 keep_logging = False
 bks = []
+bk_lock = Lock()
 sipm_serials = []
-beagle = beagle_class.Beagle('tcp://192.168.1.22:6669',100) 
-
+beagles = [beagle_class.Beagle('tcp://192.168.1.22:6669',100),beagle_class.Beagle('tcp://192.168.1.23:6669',100)]
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
@@ -51,6 +52,9 @@ gain_table = [['gain setting', 'dB', 'amplitude ratio']]
 for setting in range(81):
 	dB = 26 - setting/4.0
 	gain_table.append([setting, dB, round(10**(dB/20.0),2)])
+
+# temporary for slac
+all_temps_ignore = [0, 9, 16, 18, 27, 36, 45]
 
 @app.route('/')
 def home():
@@ -160,6 +164,8 @@ def reply_logging_status():
 def temp_plot(msg):
     if len(running_data) < 2:
         return
+    if msg['num'] in all_temps_ignore:
+        return
     start_index = get_start_index(msg)
     data = [['time', 'temp', 'plus', 'minus']]
     # downsample to help with performance
@@ -178,7 +184,7 @@ def all_temps_plot(msg):
         return
     start_index = get_start_index(msg)
     header = ['time']
-    header.extend('sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map)
+    header.extend('sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map and i not in all_temps_ignore)
     data = [header]
     # downsample to help with performance
     plot_data = running_data[start_index:]
@@ -254,28 +260,32 @@ def set_these_gains(msg):
 
 @socketio.on('bk status')
 def bk_status():
-    for num, bk in enumerate(bks):
-        if bk is not None:
-            emit('bk status', query_bk_status(bk, num))
+    with bk_lock:
+        for num, bk in enumerate(bks):
+            if bk is not None:
+                emit('bk status', query_bk_status(bk, num), broadcast=True)
 
 
 @socketio.on('new voltage pt')
 def new_voltage_pt(msg):
-    bk = bks[int(msg['num'])]
-    if bk is not None:
-        write_string = 'SOUR:VOLT %.3f\n' % float(msg['new setting'])
-        bk.write(write_string.encode('utf-8'))
-        emit('bk status', query_bk_status(bk, int(msg['num'])))
+    with bk_lock:
+        bk = bks[int(msg['num'])]
+        if bk is not None:
+            write_string = 'SOUR:VOLT %.3f\n' % float(msg['new setting'])
+            bk.write(write_string.encode('utf-8'))
+            subprocess.call(['./setBiasODB', str(msg['num']+1), str(msg['new setting'])])
+            emit('bk status', query_bk_status(bk, int(msg['num'])))
 
 @socketio.on('toggle bk power')
 def toggle_bk_power(msg):
-    bk = bks[int(msg['num'])]
-    if bk is not None:
-        if msg['on']:
-            bk.write(b'OUTP:STAT 1\n')
-        else:
-            bk.write(b'OUTP:STAT 0\n')
-            emit('bk status', query_bk_status(bk, int(msg['num'])))
+    with bk_lock:
+        bk = bks[int(msg['num'])]
+        if bk is not None:
+            if msg['on']:
+                bk.write(b'OUTP:STAT 1\n')
+            else:
+                bk.write(b'OUTP:STAT 0\n')
+                emit('bk status', query_bk_status(bk, int(msg['num'])))
 
 
 def query_bk_status(bk, num):
@@ -288,6 +298,8 @@ def query_bk_status(bk, num):
     status['current'] = read_response(bk)
     bk.write(b'MEAS:VOLT?\n')
     status['measvolt'] = read_response(bk)
+    bk.write(b'MEAS:CURR?\n')
+    status['meascurr'] = read_response(bk)
     return status
 
 
@@ -306,7 +318,7 @@ def get_start_index(msg):
 
 def update_temps():
     while keep_logging:
-        sleep(1)
+        sleep(10)
         measure_temps()
 
 
@@ -322,9 +334,12 @@ def measure_temps():
         temps = []
         for i in range(54):
             try:
-                temps.append(float(beagle.read_temp(sipm_map['sipm%i' % i])) if present_sipms[i] else 'no sipm')
-            except ValueError:
-                temps.append(-1)
+                map_num = sipm_map['sipm%i' % i]
+                beagle_num = map_num // 32
+                channel_num = map_num % 32
+                temps.append(float(beagles[beagle_num].read_temp(channel_num)) if present_sipms[i] and i not in all_temps_ignore else 'no sipm')
+            except (ValueError, KeyError):
+                temps.append('no sipm')
         for i, temp in enumerate(temps):
             if temp != 'no sipm':
                 file.write(', %.2f' % temps[i])
@@ -336,12 +351,18 @@ def measure_temps():
 
 def get_gain(sipm_num):
     if present_sipms[sipm_num]:
-        return beagle.read_gain(sipm_map['sipm%i' % sipm_num])
+        map_num = sipm_map['sipm%i' % sipm_num]
+        beagle_num = map_num // 32
+        channel_num = map_num % 32
+        return beagles[beagle_num].read_gain(channel_num)
 
 
 def set_gain(sipm_num, new_gain):
     if present_sipms[sipm_num] and (0 <= new_gain <= 80):
-        return beagle.set_gain(sipm_map['sipm%i' % sipm_num], new_gain)
+        map_num = sipm_map['sipm%i' % sipm_num]
+        beagle_num = map_num // 32
+        channel_num = map_num % 32
+        return beagles[beagle_num].set_gain(channel_num, new_gain)
 
 def kill_logger():
     global keep_logging, log_thread
@@ -363,7 +384,7 @@ def start_logging():
         with open(current_file, 'w') as file:
             file.write('date, time')
             for sipm_num in range(54):
-                if 'sipm%i' % sipm_num in sipm_map:
+                if 'sipm%i' % sipm_num in sipm_map and sipm_num not in all_temps_ignore:
                     file.write(', sipm%i' % sipm_num)
             file.write('\n')
             measure_temps()
@@ -384,26 +405,30 @@ def read_response(serial_port):
 
 
 def open_bks():
-    for bk in bks:
-        try:
-            bk.close()
-        except:
-            pass
-    del bks[:]
-    for num in range(4):
-        try:
-            bks.append(serial.Serial('/dev/bk%i' % (num + 1), 4800, timeout=0.5))
-        except:
-            bks.append(None)
-        if bks[num] is not None:
-            bks[num].write(b'SOUR:CURR 0.005\n')
+    with bk_lock:
+        for bk in bks:
+            try:
+                bk.close()
+            except:
+                pass
+        del bks[:]
+        for num in range(4):
+            try:
+                bks.append(serial.Serial('/dev/bk%i' % (num + 1), 4800, timeout=0.5))
+            except:
+                bks.append(None)
+            if bks[num] is not None:
+                bks[num].write(b'SOUR:CURR 0.005\n')
 
 
 def fill_sipm_serials():
     del sipm_serials[:]
     for sipm_num in range(54):
         if present_sipms[sipm_num]:
-            serial = beagle.read_pga(sipm_map['sipm%i' % sipm_num])
+            map_num = sipm_map['sipm%i' % sipm_num]
+            beagle_num = map_num // 32
+            channel_num = map_num % 32
+            serial = beagles[beagle_num].read_pga(channel_num)
             try:
                 sipm_serials.append(int(serial.split()[0]))
             except:

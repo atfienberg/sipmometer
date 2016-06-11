@@ -3,7 +3,7 @@ $(document).ready(function() {
 
 	(function askForGains() {
 		socket.emit('all gains');
-		setTimeout(askForGains, 2000);
+		setTimeout(askForGains, 10000);
 	})();
 
 	socket.on('sipm gain', function(msg) {
