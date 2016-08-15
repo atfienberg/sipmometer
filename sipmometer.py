@@ -54,7 +54,8 @@ for setting in range(81):
 	gain_table.append([setting, dB, round(10**(dB/20.0),2)])
 
 # temporary for slac
-all_temps_ignore = [0, 9, 16, 18, 27, 36, 45]
+#all_temps_ignore = [0, 9, 18, 27, 36, 45]
+all_temps_ignore = []
 
 @app.route('/')
 def home():
