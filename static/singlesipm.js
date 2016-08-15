@@ -13,6 +13,7 @@ $(document).ready(function() {
 		setTimeout(askForGain, 10000);
 	})();
 
+	var traceplot = new google.visualization.LineChart(document.getElementById('plot'));
 	socket.on('plot ready', function(msg) {
 		if (msg.num == sipmNum){
 			var plotdata = google.visualization.arrayToDataTable(msg.data);
@@ -33,7 +34,6 @@ $(document).ready(function() {
 				},
 				fontSize: 18
 			};
-			var traceplot = new google.visualization.LineChart(document.getElementById('plot'));
 			traceplot.draw(plotdata, options);
 		}
 	});

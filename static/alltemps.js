@@ -6,6 +6,8 @@ $(document).ready(function() {
 		setTimeout(askForPlot, 10000);
 	})();
 
+	var traceplot = new google.visualization.LineChart(document.getElementById('plot'));
+	var avgtraceplot = new google.visualization.LineChart(document.getElementById('avgplot'));
 	socket.on('all temps ready', function(msg) {
 		var plotdata = google.visualization.arrayToDataTable(msg.data);
 		var options = {
@@ -20,7 +22,6 @@ $(document).ready(function() {
 			},
 			fontSize: 18
 		};
-		var traceplot = new google.visualization.LineChart(document.getElementById('plot'));
 		traceplot.draw(plotdata, options);
 
 		var avgplotdata = google.visualization.arrayToDataTable(msg.avgdata);
@@ -36,7 +37,6 @@ $(document).ready(function() {
 			fontSize: 18,
 			title: 'average, max, min'
 		};
-		var avgtraceplot = new google.visualization.LineChart(document.getElementById('avgplot'));
 		avgtraceplot.draw(avgplotdata, avgoptions);
 	});
 
