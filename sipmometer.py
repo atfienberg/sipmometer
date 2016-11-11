@@ -39,7 +39,7 @@ log_thread = None
 keep_logging = False
 sipm_serials = []
 bkbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=400)
-sipmbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=400)
+sipmbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=100)
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
