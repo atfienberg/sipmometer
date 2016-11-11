@@ -38,8 +38,8 @@ bks = []
 log_thread = None
 keep_logging = False
 sipm_serials = []
-bkbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669')
-sipmbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669')
+bkbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=400)
+sipmbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=400)
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
@@ -283,7 +283,7 @@ def toggle_bk_power(msg):
 
 def query_bk_status(bk):
     status = {'num' : str(bk)}
-    status['outstat'] = bkbeagle.bk_output_stat(bk).decode('utf8')
+    status['outstat'] = bkbeagle.bk_output_stat(bk)
     status['voltage'] = bkbeagle.bk_read_voltage(bk)
     status['current'] = bkbeagle.bk_read_currlim(bk)
     status['measvolt'] = bkbeagle.bk_measure_voltage(bk)
