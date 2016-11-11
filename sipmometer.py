@@ -10,15 +10,14 @@ from flask_socketio import SocketIO, emit
 
 from time import sleep
 from datetime import datetime, timedelta
-from threading import Thread, Lock
+from threading import Thread
 from collections import OrderedDict
 from bisect import bisect_left
 
 import numpy as np
 
-import serial
 import json
-import subprocess
+#import subprocess
 
 import beagle_class
 
@@ -32,12 +31,14 @@ current_file = None
 logging_temps = False
 running_data = []
 sample_datetimes = []
+
+# temporary to minimize code changes as I try to get this working with new beagle setup
+bks = [1,2,3,4]
+
 log_thread = None
 keep_logging = False
-bks = []
-bk_lock = Lock()
 sipm_serials = []
-beagles = [beagle_class.Beagle('tcp://192.168.1.22:6669',100),beagle_class.Beagle('tcp://192.168.1.23:6669',100)]
+beagle = beagle_class.Beagle('tcp://192.168.1.22:6669')
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
@@ -144,12 +145,6 @@ def gaintable():
 @app.route('/bkcontrols')
 def bkcontrols():
     return render_template('bkcontrols.html', bks=[i for i, j in enumerate(bks) if j is not None])
-
-
-@app.route('/findbks')
-def findbks():
-    open_bks()
-    return redirect(url_for('bkcontrols'))
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -261,46 +256,39 @@ def set_these_gains(msg):
 
 @socketio.on('bk status')
 def bk_status():
-    with bk_lock:
-        for num, bk in enumerate(bks):
-            if bk is not None:
-                emit('bk status', query_bk_status(bk, num), broadcast=True)
+    for num, bk in enumerate(bks):
+        if bk is not None:
+            emit('bk status', query_bk_status(bk), broadcast=True)
 
 
 @socketio.on('new voltage pt')
 def new_voltage_pt(msg):
-    with bk_lock:
-        bk = bks[int(msg['num'])]
-        if bk is not None:
-            write_string = 'SOUR:VOLT %.3f\n' % float(msg['new setting'])
-            bk.write(write_string.encode('utf-8'))
-            subprocess.call(['./setBiasODB', str(msg['num']+1), str(msg['new setting'])])
-            emit('bk status', query_bk_status(bk, int(msg['num'])))
+    bk = bks[int(msg['num'])]
+    if bk is not None:
+        # write_string = 'SOUR:VOLT %.3f\n' % float(msg['new setting'])
+        beagle.bk_set_voltage(bk, float[msg['new setting']])
+        # bk.write(write_string.encode('utf-8'))
+#        subprocess.call(['./setBiasODB', str(msg['num']+1), str(msg['new setting'])])
+        emit('bk status', query_bk_status(bk))
 
 @socketio.on('toggle bk power')
 def toggle_bk_power(msg):
-    with bk_lock:
-        bk = bks[int(msg['num'])]
-        if bk is not None:
-            if msg['on']:
-                bk.write(b'OUTP:STAT 1\n')
-            else:
-                bk.write(b'OUTP:STAT 0\n')
-                emit('bk status', query_bk_status(bk, int(msg['num'])))
+    bk = bks[int(msg['num'])]
+    if bk is not None:
+        if msg['on']:
+        	beagle.bk_power_on(bk)
+        else:
+            beagle.bk_power_off(bk)
+            emit('bk status', query_bk_status(bk))
 
 
-def query_bk_status(bk, num):
-    status = {'num' : str(num)}
-    bk.write(b'OUTP:STAT?\n')
-    status['outstat'] = read_response(bk)
-    bk.write(b'SOUR:VOLT?\n')
-    status['voltage'] = read_response(bk)
-    bk.write(b'SOUR:CURR?\n')
-    status['current'] = read_response(bk)
-    bk.write(b'MEAS:VOLT?\n')
-    status['measvolt'] = read_response(bk)
-    bk.write(b'MEAS:CURR?\n')
-    status['meascurr'] = read_response(bk)
+def query_bk_status(bk):
+    status = {'num' : str(bk)}
+    status['outstat'] = beagle.bk_output_stat(bk)
+    status['voltage'] = beagle.bk_read_voltage(bk)
+    status['current'] = beagle.bk_read_currlim(bk)
+    status['measvolt'] = beagle.bk_measure_voltage(bk)
+    status['meascurr'] = beagle.bk_measure_current(bk)
     return status
 
 
@@ -335,10 +323,10 @@ def measure_temps():
         temps = []
         for i in range(54):
             try:
-                map_num = sipm_map['sipm%i' % i]
-                beagle_num = map_num // 32
-                channel_num = map_num % 32
-                temps.append(float(beagles[beagle_num].read_temp(channel_num)) if present_sipms[i] and i not in all_temps_ignore else 'no sipm')
+                sipm_dict = sipm_map['sipm%i' % i]
+                board_num = sipm_dict['board']
+                chan_num = sipm_dict['chan']
+                temps.append(float(beagle.read_temp(board_num, chan_num)) if present_sipms[i] and i not in all_temps_ignore else 'no sipm')
             except (ValueError, KeyError):
                 temps.append('no sipm')
         for i, temp in enumerate(temps):
@@ -352,18 +340,18 @@ def measure_temps():
 
 def get_gain(sipm_num):
     if present_sipms[sipm_num]:
-        map_num = sipm_map['sipm%i' % sipm_num]
-        beagle_num = map_num // 32
-        channel_num = map_num % 32
-        return beagles[beagle_num].read_gain(channel_num)
+    	sipm_dict = sipm_map['sipm%i' % i]
+    	board_num = sipm_dict['board']
+    	chan_num = sipm_dict['chan']
+        return beagle.read_gain(board_num, chan_num)
 
 
 def set_gain(sipm_num, new_gain):
     if present_sipms[sipm_num] and (0 <= new_gain <= 80):
-        map_num = sipm_map['sipm%i' % sipm_num]
-        beagle_num = map_num // 32
-        channel_num = map_num % 32
-        return beagles[beagle_num].set_gain(channel_num, new_gain)
+    	sipm_dict = sipm_map['sipm%i' % i]
+    	board_num = sipm_dict['board']
+    	chan_num = sipm_dict['chan']
+        return beagle.set_gain(board_num, chan_num, new_gain)
 
 def kill_logger():
     global keep_logging, log_thread
@@ -393,43 +381,20 @@ def start_logging():
         keep_logging = True
         log_thread.start()
 
-
-def read_response(serial_port):
-    response = ''
-    while len(response) == 0 or response[-1] != '\n':
-        new_char = (serial_port.read(1)).decode("utf-8")
-        if new_char == '':
-            return 'failed read'
-        else:
-            response += new_char
-    return response[:-1]
-
-
 def open_bks():
-    with bk_lock:
-        for bk in bks:
-            try:
-                bk.close()
-            except:
-                pass
-        del bks[:]
-        for num in range(4):
-            try:
-                bks.append(serial.Serial('/dev/bk%i' % (num + 1), 4800, timeout=0.5))
-            except:
-                bks.append(None)
-            if bks[num] is not None:
-                bks[num].write(b'SOUR:CURR 0.005\n')
+	bks = [1, 2, 3, 4]
+	for bk in bks:
+		beagle.bk_set_currlim(bk, 0.005)
 
 
 def fill_sipm_serials():
     del sipm_serials[:]
     for sipm_num in range(54):
         if present_sipms[sipm_num]:
-            map_num = sipm_map['sipm%i' % sipm_num]
-            beagle_num = map_num // 32
-            channel_num = map_num % 32
-            serial = beagles[beagle_num].read_pga(channel_num)
+            sipm_dict = sipm_map['sipm%i' % i]
+            board_num = sipm_dict['board']
+            chan_num = sipm_dict['chan']
+            serial = beagle.read_pga(board_num, chan_num)
             try:
                 sipm_serials.append(int(serial.split()[0]))
             except:
@@ -439,6 +404,6 @@ def fill_sipm_serials():
 
 
 if __name__ == '__main__':
-    open_bks()
-    fill_sipm_serials()
-    socketio.run(app)
+	open_bks()
+	fill_sipm_serials()
+	socketio.run(app)

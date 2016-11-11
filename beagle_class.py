@@ -24,16 +24,16 @@ class Beagle:
             return None
 
     def read_temp(self, board_num, chan_num):
-        return float(self.issue_command("return board %i chan %i temp" % (board_num, chan_num)))
+        return float(self.issue_command("board %i chan %i temp" % (board_num, chan_num)))
 
     def read_gain(self, board_num, chan_num):
-        return float(self.issue_command("return board %i chan %i gain" % (board_num, chan_num)))
+        return float(self.issue_command("board %i chan %i gain" % (board_num, chan_num)))
 
     def set_gain(self, board_num, chan_num, gain):
-        return float(self.issue_command("board %i return chan %i gain %i" % (board_num, chan_num, gain)))
+        return float(self.issue_command("board %i chan %i gain %i" % (board_num, chan_num, gain)))
 
     def read_pga(self, board_num, chan_num):
-        return self.issue_command('return board %i chan %i mem' % (board_num, chan_num))
+        return self.issue_command('board %i chan %i mem' % (board_num, chan_num))
 
     def bk_output_stat(self, bk_num):
         return self.issue_command('bk %i read output' % bk_num)
