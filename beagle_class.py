@@ -1,5 +1,6 @@
 # for communicating with the zmq broker on the beagle board
 # to read/set sipm gains/temps
+# all functions return results as strings
 
 import zmq
 
