@@ -3,6 +3,9 @@
 
 import zmq
 
+# need lock to make sure zmq send, recv commands are executed in correct sequence
+from threading import Lock
+
 CTXT = zmq.Context()
 
 class Beagle:
@@ -11,15 +14,17 @@ class Beagle:
         self.socket.setsockopt(zmq.LINGER, 0)
         self.socket.setsockopt(zmq.RCVTIMEO, timeout)
         self.socket.connect(connection_addr)
+        self.socklock = Lock()
 
     def issue_command(self, command):
-        self.socket.send_string(command)
-        try:
-            return self.socket.recv()
-        except zmq.error.Again:
-            return "timeout"
-        except ValueError:
-            return None
+        with self.socklock:
+            self.socket.send_string(command)
+            try:
+                return self.socket.recv()
+            except zmq.error.Again:
+                return "timeout"
+            except ValueError:
+                return None
 
     def read_temp(self, board_num, chan_num):
         return float(self.issue_command("board %i chan %i temp" % (board_num, chan_num)))
