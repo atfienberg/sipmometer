@@ -10,21 +10,26 @@ CTXT = zmq.Context()
 
 class Beagle:
     def __init__(self, connection_addr, timeout=200):
-        self.socket = CTXT.socket(zmq.REQ)
-        self.socket.setsockopt(zmq.LINGER, 0)
-        self.socket.setsockopt(zmq.RCVTIMEO, timeout)
-        self.socket.connect(connection_addr)
+        self.connection_addr = connection_addr
+        self.timeout = timeout
+        self.open_sock()
         self.socklock = Lock()
 
+    def open_sock(self):
+        self.socket = CTXT.socket(zmq.REQ)
+        self.socket.setsockopt(zmq.LINGER, 0)
+        self.socket.setsockopt(zmq.RCVTIMEO, self.timeout)
+        self.socket.connect(self.connection_addr)
+        
     def issue_command(self, command):
         with self.socklock:
             self.socket.send_string(command)
             try:
                 return self.socket.recv()
             except zmq.error.Again:
+                self.socket.close()
+                self.open_sock()
                 return "timeout"
-            except ValueError:
-                return None
 
     def read_temp(self, board_num, chan_num):
         return float(self.issue_command("board %i chan %i temp" % (board_num, chan_num)))
