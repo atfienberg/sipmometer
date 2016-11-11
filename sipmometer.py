@@ -33,12 +33,12 @@ running_data = []
 sample_datetimes = []
 
 # temporary to minimize code changes as I try to get this working with new beagle setup
-bks = [1,2,3,4]
+bks = []
 
 log_thread = None
 keep_logging = False
 sipm_serials = []
-beagle = beagle_class.Beagle('tcp://192.168.1.22:6669')
+beagle = beagle_class.Beagle('tcp://192.168.1.21:6669')
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
@@ -144,7 +144,7 @@ def gaintable():
 
 @app.route('/bkcontrols')
 def bkcontrols():
-    return render_template('bkcontrols.html', bks=[i for i, j in enumerate(bks) if j is not None])
+    return render_template('bkcontrols.html', bks=[j for i, j in enumerate(bks) if j is not None])
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -263,17 +263,15 @@ def bk_status():
 
 @socketio.on('new voltage pt')
 def new_voltage_pt(msg):
-    bk = bks[int(msg['num'])]
+    bk = int(msg['num'])
     if bk is not None:
-        # write_string = 'SOUR:VOLT %.3f\n' % float(msg['new setting'])
-        beagle.bk_set_voltage(bk, float[msg['new setting']])
-        # bk.write(write_string.encode('utf-8'))
+        beagle.bk_set_voltage(bk, float(msg['new setting']))
 #        subprocess.call(['./setBiasODB', str(msg['num']+1), str(msg['new setting'])])
         emit('bk status', query_bk_status(bk))
 
 @socketio.on('toggle bk power')
 def toggle_bk_power(msg):
-    bk = bks[int(msg['num'])]
+    bk = int(msg['num'])
     if bk is not None:
         if msg['on']:
         	beagle.bk_power_on(bk)
@@ -284,7 +282,7 @@ def toggle_bk_power(msg):
 
 def query_bk_status(bk):
     status = {'num' : str(bk)}
-    status['outstat'] = beagle.bk_output_stat(bk)
+    status['outstat'] = beagle.bk_output_stat(bk).decode('utf8')
     status['voltage'] = beagle.bk_read_voltage(bk)
     status['current'] = beagle.bk_read_currlim(bk)
     status['measvolt'] = beagle.bk_measure_voltage(bk)
@@ -340,17 +338,17 @@ def measure_temps():
 
 def get_gain(sipm_num):
     if present_sipms[sipm_num]:
-    	sipm_dict = sipm_map['sipm%i' % i]
-    	board_num = sipm_dict['board']
-    	chan_num = sipm_dict['chan']
+        sipm_dict = sipm_map['sipm%i' % i]
+        board_num = sipm_dict['board']
+        chan_num = sipm_dict['chan']
         return beagle.read_gain(board_num, chan_num)
 
 
 def set_gain(sipm_num, new_gain):
     if present_sipms[sipm_num] and (0 <= new_gain <= 80):
-    	sipm_dict = sipm_map['sipm%i' % i]
-    	board_num = sipm_dict['board']
-    	chan_num = sipm_dict['chan']
+        sipm_dict = sipm_map['sipm%i' % i]
+        board_num = sipm_dict['board']
+        chan_num = sipm_dict['chan']
         return beagle.set_gain(board_num, chan_num, new_gain)
 
 def kill_logger():
@@ -382,9 +380,10 @@ def start_logging():
         log_thread.start()
 
 def open_bks():
-	bks = [1, 2, 3, 4]
-	for bk in bks:
-		beagle.bk_set_currlim(bk, 0.005)
+    global bks 
+    bks = [1, 2, 3, 4]
+    for bk in bks:
+        beagle.bk_set_currlim(bk, 0.005)
 
 
 def fill_sipm_serials():

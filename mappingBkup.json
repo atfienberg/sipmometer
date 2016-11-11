@@ -1,0 +1,218 @@
+{
+    "sipm0": {
+        "board": 0,
+        "chan": 2
+    },
+    "sipm1": {
+        "board": 2,
+        "chan": 7
+    },
+    "sipm10": {
+        "board": 2,
+        "chan": 5
+    },
+    "sipm11": {
+        "board": 2,
+        "chan": 6
+    },
+    "sipm12": {
+        "board": 1,
+        "chan": 11
+    },
+    "sipm13": {
+        "board": 1,
+        "chan": 12
+    },
+    "sipm14": {
+        "board": 3,
+        "chan": 8
+    },
+    "sipm15": {
+        "board": 3,
+        "chan": 6
+    },
+    "sipm16": {
+        "board": 0,
+        "chan": 11
+    },
+    "sipm17": {
+        "board": 0,
+        "chan": 12
+    },
+    "sipm18": {
+        "board": 2,
+        "chan": 2
+    },
+    "sipm19": {
+        "board": 2,
+        "chan": 3
+    },
+    "sipm2": {
+        "board": 2,
+        "chan": 8
+    },
+    "sipm20": {
+        "board": 2,
+        "chan": 4
+    },
+    "sipm21": {
+        "board": 1,
+        "chan": 9
+    },
+    "sipm22": {
+        "board": 1,
+        "chan": 10
+    },
+    "sipm23": {
+        "board": 3,
+        "chan": 3
+    },
+    "sipm24": {
+        "board": 3,
+        "chan": 4
+    },
+    "sipm25": {
+        "board": 0,
+        "chan": 9
+    },
+    "sipm26": {
+        "board": 0,
+        "chan": 10
+    },
+    "sipm27": {
+        "board": 3,
+        "chan": 2
+    },
+    "sipm28": {
+        "board": 2,
+        "chan": 13
+    },
+    "sipm29": {
+        "board": 2,
+        "chan": 14
+    },
+    "sipm3": {
+        "board": 1,
+        "chan": 13
+    },
+    "sipm30": {
+        "board": 1,
+        "chan": 3
+    },
+    "sipm31": {
+        "board": 1,
+        "chan": 4
+    },
+    "sipm32": {
+        "board": 3,
+        "chan": 13
+    },
+    "sipm33": {
+        "board": 3,
+        "chan": 14
+    },
+    "sipm34": {
+        "board": 0,
+        "chan": 3
+    },
+    "sipm35": {
+        "board": 0,
+        "chan": 4
+    },
+    "sipm36": {
+        "board": 2,
+        "chan": 1
+    },
+    "sipm37": {
+        "board": 2,
+        "chan": 11
+    },
+    "sipm38": {
+        "board": 2,
+        "chan": 12
+    },
+    "sipm39": {
+        "board": 1,
+        "chan": 5
+    },
+    "sipm4": {
+        "board": 1,
+        "chan": 14
+    },
+    "sipm40": {
+        "board": 1,
+        "chan": 6
+    },
+    "sipm41": {
+        "board": 3,
+        "chan": 11
+    },
+    "sipm42": {
+        "board": 3,
+        "chan": 12
+    },
+    "sipm43": {
+        "board": 0,
+        "chan": 5
+    },
+    "sipm44": {
+        "board": 0,
+        "chan": 6
+    },
+    "sipm45": {
+        "board": 3,
+        "chan": 1
+    },
+    "sipm46": {
+        "board": 2,
+        "chan": 9
+    },
+    "sipm47": {
+        "board": 2,
+        "chan": 10
+    },
+    "sipm48": {
+        "board": 1,
+        "chan": 7
+    },
+    "sipm49": {
+        "board": 1,
+        "chan": 8
+    },
+    "sipm5": {
+        "board": 3,
+        "chan": 5
+    },
+    "sipm50": {
+        "board": 3,
+        "chan": 9
+    },
+    "sipm51": {
+        "board": 3,
+        "chan": 10
+    },
+    "sipm52": {
+        "board": 0,
+        "chan": 7
+    },
+    "sipm53": {
+        "board": 0,
+        "chan": 8
+    },
+    "sipm6": {
+        "board": 3,
+        "chan": 7
+    },
+    "sipm7": {
+        "board": 0,
+        "chan": 13
+    },
+    "sipm8": {
+        "board": 0,
+        "chan": 14
+    },
+    "sipm9": {
+        "board": 1,
+        "chan": 2
+    }
+}

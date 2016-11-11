@@ -5,9 +5,7 @@ import zmq
 
 CTXT = zmq.Context()
 
-
 class Beagle:
-
     def __init__(self, connection_addr, timeout=200):
         self.socket = CTXT.socket(zmq.REQ)
         self.socket.setsockopt(zmq.LINGER, 0)
@@ -56,11 +54,11 @@ class Beagle:
     def bk_power_off(self, bk_num):
         return float(self.issue_command('bk %i power off' % bk_num))
 
-	def bk_set_voltage(self, bk_num, voltage):
-		return float(self.issue_command('bk %i set voltage %f' % (bk_num, voltage)))
+    def bk_set_voltage(self, bk_num, voltage):
+        return float(self.issue_command('bk %i set voltage %f' % (bk_num, voltage)))
 
-	def bk_set_currlim(self, bk_num, voltage):
-		return float(self.issue_command('bk %i set current %f' % (bk_num, voltage)))
+    def bk_set_currlim(self, bk_num, current):
+        return float(self.issue_command('bk %i set current %f' % (bk_num, current)))
 
 def main():
     b = Beagle('tcp://192.168.1.22:6669')
