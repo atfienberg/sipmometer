@@ -38,7 +38,8 @@ bks = []
 log_thread = None
 keep_logging = False
 sipm_serials = []
-beagle = beagle_class.Beagle('tcp://192.168.1.21:6669')
+bkbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669')
+sipmbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669')
 
 sipm_map = None
 with open('sipmMapping.json') as json_file:
@@ -265,7 +266,7 @@ def bk_status():
 def new_voltage_pt(msg):
     bk = int(msg['num'])
     if bk is not None:
-        beagle.bk_set_voltage(bk, float(msg['new setting']))
+        bkbeagle.bk_set_voltage(bk, float(msg['new setting']))
 #        subprocess.call(['./setBiasODB', str(msg['num']+1), str(msg['new setting'])])
         emit('bk status', query_bk_status(bk))
 
@@ -274,19 +275,19 @@ def toggle_bk_power(msg):
     bk = int(msg['num'])
     if bk is not None:
         if msg['on']:
-        	beagle.bk_power_on(bk)
+        	bkbeagle.bk_power_on(bk)
         else:
-            beagle.bk_power_off(bk)
+            bkbeagle.bk_power_off(bk)
             emit('bk status', query_bk_status(bk))
 
 
 def query_bk_status(bk):
     status = {'num' : str(bk)}
-    status['outstat'] = beagle.bk_output_stat(bk).decode('utf8')
-    status['voltage'] = beagle.bk_read_voltage(bk)
-    status['current'] = beagle.bk_read_currlim(bk)
-    status['measvolt'] = beagle.bk_measure_voltage(bk)
-    status['meascurr'] = beagle.bk_measure_current(bk)
+    status['outstat'] = bkbeagle.bk_output_stat(bk).decode('utf8')
+    status['voltage'] = bkbeagle.bk_read_voltage(bk)
+    status['current'] = bkbeagle.bk_read_currlim(bk)
+    status['measvolt'] = bkbeagle.bk_measure_voltage(bk)
+    status['meascurr'] = bkbeagle.bk_measure_current(bk)
     return status
 
 
@@ -324,7 +325,7 @@ def measure_temps():
                 sipm_dict = sipm_map['sipm%i' % i]
                 board_num = sipm_dict['board']
                 chan_num = sipm_dict['chan']
-                temps.append(float(beagle.read_temp(board_num, chan_num)) if present_sipms[i] and i not in all_temps_ignore else 'no sipm')
+                temps.append(float(sipmbeagle.read_temp(board_num, chan_num)) if present_sipms[i] and i not in all_temps_ignore else 'no sipm')
             except (ValueError, KeyError):
                 temps.append('no sipm')
         for i, temp in enumerate(temps):
@@ -341,7 +342,7 @@ def get_gain(sipm_num):
         sipm_dict = sipm_map['sipm%i' % i]
         board_num = sipm_dict['board']
         chan_num = sipm_dict['chan']
-        return beagle.read_gain(board_num, chan_num)
+        return sipmbeagle.read_gain(board_num, chan_num)
 
 
 def set_gain(sipm_num, new_gain):
@@ -349,7 +350,7 @@ def set_gain(sipm_num, new_gain):
         sipm_dict = sipm_map['sipm%i' % i]
         board_num = sipm_dict['board']
         chan_num = sipm_dict['chan']
-        return beagle.set_gain(board_num, chan_num, new_gain)
+        return sipmbeagle.set_gain(board_num, chan_num, new_gain)
 
 def kill_logger():
     global keep_logging, log_thread
@@ -383,7 +384,7 @@ def open_bks():
     global bks 
     bks = [1, 2, 3, 4]
     for bk in bks:
-        beagle.bk_set_currlim(bk, 0.005)
+        bkbeagle.bk_set_currlim(bk, 0.005)
 
 
 def fill_sipm_serials():
@@ -393,7 +394,7 @@ def fill_sipm_serials():
             sipm_dict = sipm_map['sipm%i' % i]
             board_num = sipm_dict['board']
             chan_num = sipm_dict['chan']
-            serial = beagle.read_pga(board_num, chan_num)
+            serial = sipmbeagle.read_pga(board_num, chan_num)
             try:
                 sipm_serials.append(int(serial.split()[0]))
             except:
