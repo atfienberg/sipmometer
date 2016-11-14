@@ -49,6 +49,7 @@ for i in range(54):
     present_sipms.append(True if 'sipm%i' % i in sipm_map else False)
 
 
+
 # prepare gain table
 gain_table = [['gain setting', 'dB', 'amplitude ratio']]
 for setting in range(81):
@@ -339,7 +340,7 @@ def measure_temps():
 
 def get_gain(sipm_num):
     if present_sipms[sipm_num]:
-        sipm_dict = sipm_map['sipm%i' % i]
+        sipm_dict = sipm_map['sipm%i' % sipm_num]
         board_num = sipm_dict['board']
         chan_num = sipm_dict['chan']
         return sipmbeagle.read_gain(board_num, chan_num)
@@ -347,7 +348,7 @@ def get_gain(sipm_num):
 
 def set_gain(sipm_num, new_gain):
     if present_sipms[sipm_num] and (0 <= new_gain <= 80):
-        sipm_dict = sipm_map['sipm%i' % i]
+        sipm_dict = sipm_map['sipm%i' % sipm_num]
         board_num = sipm_dict['board']
         chan_num = sipm_dict['chan']
         return sipmbeagle.set_gain(board_num, chan_num, new_gain)
@@ -391,10 +392,10 @@ def fill_sipm_serials():
     del sipm_serials[:]
     for sipm_num in range(54):
         if present_sipms[sipm_num]:
-            sipm_dict = sipm_map['sipm%i' % i]
+            sipm_dict = sipm_map['sipm%i' % sipm_num]
             board_num = sipm_dict['board']
             chan_num = sipm_dict['chan']
-            serial = sipmbeagle.read_pga(board_num, chan_num)
+            serial = sipmbeagle.read_mem(board_num, chan_num)
             try:
                 sipm_serials.append(int(serial.split()[0]))
             except:

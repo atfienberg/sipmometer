@@ -41,7 +41,7 @@ class Beagle:
     def set_gain(self, board_num, chan_num, gain):
         return self.issue_command("board %i chan %i gain %i" % (board_num, chan_num, gain))
 
-    def read_pga(self, board_num, chan_num):
+    def read_mem(self, board_num, chan_num):
         return self.issue_command('board %i chan %i mem' % (board_num, chan_num))
 
     def bk_output_stat(self, bk_num):
