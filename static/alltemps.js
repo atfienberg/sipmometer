@@ -12,7 +12,6 @@ $(document).ready(function() {
 	title: 'all SiPMs',
 	titlefont: {size: 20},
         yaxis: { title: 'temperature', titlefont: {size: 20}},
-	showlegend: false
     });
     var nallplottraces = 0;
 
@@ -22,7 +21,6 @@ $(document).ready(function() {
 	title: 'avg, max, min',
 	titlefont: {size: 20},
         yaxis: { title: 'temperature', titlefont: {size: 20}},
-	showlegend: false
     });
     var startedAvgPlot = false;
     socket.on('all temps ready', function(msg) {
@@ -30,7 +28,7 @@ $(document).ready(function() {
 	for (var i = 0; i < nallplottraces; ++i) {
 	    alltracesindices[i] = i;
 	}
-	var nallplottraces = msg.data.length;
+	nallplottraces = msg.data.length;
 	Plotly.deleteTraces(plot, alltracesindices);
 	Plotly.addTraces(plot, msg.data);
 	
