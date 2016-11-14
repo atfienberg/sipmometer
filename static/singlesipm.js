@@ -28,13 +28,17 @@ $(document).ready(function() {
 
     var plot = document.getElementById('plot');
     Plotly.newPlot('plot', [
-        { y: [] }
     ], {
         yaxis: { title: 'temperature', titlefont: {size: 20}},
     });
+    var madePlot = false;
     socket.on('plot ready', function(data) {
         if (data.num == sipmNum) {
-            Plotly.deleteTraces(plot, 0);
+	    if (madePlot) {
+		Plotly.deleteTraces(plot, 0);
+	    } else {
+		madePlot = true;
+	    }
             Plotly.addTraces(plot, { x: data.x, y: data.y, mode: 'lines' });
             var newlayout = { shapes: [data.plus, data.minus].map(makeHorizontalLine) };
             Plotly.relayout(plot, newlayout);

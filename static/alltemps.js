@@ -10,8 +10,10 @@ $(document).ready(function() {
     Plotly.newPlot('plot', [
     ], {
 	title: 'all SiPMs',
+	hovermode: 'closest',
 	titlefont: {size: 20},
         yaxis: { title: 'temperature', titlefont: {size: 20}},
+	showlegend: false
     });
     var nallplottraces = 0;
 
@@ -19,8 +21,10 @@ $(document).ready(function() {
     Plotly.newPlot('avgplot', [
     ], {
 	title: 'avg, max, min',
+	hovermode: 'closest',
 	titlefont: {size: 20},
         yaxis: { title: 'temperature', titlefont: {size: 20}},
+	showlegend: false
     });
     var startedAvgPlot = false;
     socket.on('all temps ready', function(msg) {
