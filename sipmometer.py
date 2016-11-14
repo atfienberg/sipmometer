@@ -174,7 +174,7 @@ def temp_plot(msg):
     if msg['num'] in all_temps_ignore:
         return
     start_index = get_start_index(msg)
-    data = {}
+    data = {'num': msg['num']}
     data['x'] = []
     data['y'] = []
     # downsample to help with performance
@@ -185,7 +185,7 @@ def temp_plot(msg):
     for row in plot_data[::stepsize]:
         data['x'].append(row[0])
         data['y'].append(row[msg['num'] + 1])
-    emit('plot ready', {'num': msg['num'], 'data': data})
+    emit('plot ready', data)
 
 
 @socketio.on('all temps')

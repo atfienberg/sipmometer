@@ -22,7 +22,7 @@ $(document).ready(function() {
             y0: y,
             x1: 1,
             y1: y,
-            line: { color: 'red' }
+	    line: { color: 'red', dash: 'dash' }
         };
     }
 
@@ -30,16 +30,14 @@ $(document).ready(function() {
     Plotly.newPlot('plot', [
         { y: [] }
     ], {
-        titlefont: { size: 20 },
-        yaxis: { title: 'temperature' },
+        yaxis: { title: 'temperature', titlefont: {size: 20}},
     });
-    socket.on('plot ready', function(msg) {
-        if (msg.num == sipmNum) {
+    socket.on('plot ready', function(data) {
+        if (data.num == sipmNum) {
             Plotly.deleteTraces(plot, 0);
-            Plotly.addTraces(plot, { x: data.x, y: data.y, type: 'line' });
-
+            Plotly.addTraces(plot, { x: data.x, y: data.y, mode: 'lines' });
             var newlayout = { shapes: [data.plus, data.minus].map(makeHorizontalLine) };
-            Plotly.relayout(newlayout);
+            Plotly.relayout(plot, newlayout);
         }
     });
 
