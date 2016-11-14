@@ -174,14 +174,17 @@ def temp_plot(msg):
     if msg['num'] in all_temps_ignore:
         return
     start_index = get_start_index(msg)
-    data = [['time', 'temp', 'plus', 'minus']]
+    data = {}
+    data['x'] = []
+    data['y'] = []
     # downsample to help with performance
     plot_data = running_data[start_index:]
     stepsize = len(plot_data) // 100 if len(plot_data) > 100 else 1
-    plus = plot_data[-1][msg['num']+1] + 0.3
-    minus = plot_data[-1][msg['num']+1] - 0.3
+    data['plus'] = plot_data[-1][msg['num']+1] + 0.3
+    data['minus'] = plot_data[-1][msg['num']+1] - 0.3
     for row in plot_data[::stepsize]:
-        data.append([row[0], row[msg['num'] + 1], plus, minus])
+        data['x'].append(row[0])
+        data['y'].append(row[msg['num'] + 1])
     emit('plot ready', {'num': msg['num'], 'data': data})
 
 
