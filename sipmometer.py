@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from threading import Thread
 from collections import OrderedDict
 from bisect import bisect_left
+from itertools import dropwhile
 
 import numpy as np
 
@@ -22,7 +23,7 @@ import json
 import beagle_class
 
 app = Flask(__name__)
-# app.debug = True     
+#app.debug = True     
 
 socketio = SocketIO(app, async_mode='eventlet')
 
@@ -93,18 +94,26 @@ def all_temps():
 
 @app.route('/sipm<int:sipm_num>')
 def sipm_graph(sipm_num):
-    return sipm_graph_next(sipm_num, 'next')
-
+    if present_sipms[sipm_num]:        
+        return render_template('singlesipm.html', num=sipm_num, serial=sipm_serials[sipm_num])
+    else:
+        return render_template('notfound.html')
 
 @app.route('/sipm<int:sipm_num>_<string:next_str>')
 def sipm_graph_next(sipm_num, next_str):
-    if sipm_num >= 0 and sipm_num < 54:
-        if 'sipm%i' % sipm_num in sipm_map:
-            return render_template('singlesipm.html', num=sipm_num, serial=sipm_serials[sipm_num])
-        elif next_str == 'next':
-            return redirect(url_for('sipm_graph_next', sipm_num=sipm_num+1, next_str=next_str))
-        else:
-            return redirect(url_for('sipm_graph_next', sipm_num=sipm_num-1, next_str=next_str))
+    if sipm_num >= 0 and sipm_num < 54:        
+        if next_str == 'next':
+            try:
+                sipm_num = next(dropwhile(lambda i: i <= sipm_num or not present_sipms[i], range(sipm_num, 54)))
+            except StopIteration:
+                return render_template('notfound.html')
+            return redirect('/sipm%i' % sipm_num)
+        elif next_str == 'prev':
+            try:
+                sipm_num = next(dropwhile(lambda i: i >= sipm_num or not present_sipms[i], range(sipm_num, -1, -1)))
+            except StopIteration:
+                render_template('notfound.html')
+            return redirect('/sipm%i' % sipm_num)
     else:
         return render_template('notfound.html')
 
