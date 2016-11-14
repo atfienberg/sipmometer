@@ -193,14 +193,19 @@ def all_temps_plot(msg):
     if len(running_data) < 2:
         return
     start_index = get_start_index(msg)
-    header = ['time']
-    header.extend('sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map and i not in all_temps_ignore)
-    data = [header]
+    header = ['sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map and i not in all_temps_ignore]
+    data = [{'name': name, 'y': [], 'mode': 'lines'} for name in header] 
+
     # downsample to help with performance
     plot_data = running_data[start_index:]
     stepsize = len(plot_data) // 100 if len(plot_data) > 100 else 1
+    times = []
     for row in plot_data[::stepsize]:
-        data.append([element for element in row if element != 'no sipm'])
+        times.append(row[0])
+        for sipm_num, temp in enumerate(val for val in row[1:] if val != 'no sipm'):
+            data[sipm_num]['y'].append(temp)
+    for trace in data:
+        trace['x'] = times
 
     max_index = next((i for i, val in enumerate(running_data[-1][1:]) if val != 'no sipm')) + 1
     min_index = max_index
@@ -211,12 +216,18 @@ def all_temps_plot(msg):
                 max_index = index
             if val < plot_data[-1][min_index]:
                 min_index = index
-    avgdata = [['time', 'average temp', 'sipm%i' %
-                (max_index - 1), 'sipm%i' % (min_index - 1)]]
+    avgdata = [{'name': 'average temp', 'y': [], 'mode': 'lines'}, {'name': 'sipm%i' %
+                                                                    (max_index - 1), 'y': [], 'mode': 'lines'}, {'name': 'sipm%i' % (min_index - 1), 'y': [], 'mode': 'lines'}]
+    for trace in avgdata:
+        trace['x'] = times
     for row in plot_data[::stepsize]:
         numeric_row = [element for element in row if element != 'no sipm']
-        avgdata.append([row[0], np.sum(numeric_row[1:]) /
-                        (len(numeric_row)-1), row[max_index], row[min_index]])
+        avgdata[0]['y'].append(np.sum(numeric_row[1:]) /
+                        (len(numeric_row)-1))
+        avgdata[1]['y'].append(row[max_index])
+        avgdata[2]['y'].append(row[min_index])
+        # avgdata.append([row[0], np.sum(numeric_row[1:]) /
+        #                 (len(numeric_row)-1), row[max_index], row[min_index]])
     emit('all temps ready', {'data': data, 'avgdata': avgdata})
 
 

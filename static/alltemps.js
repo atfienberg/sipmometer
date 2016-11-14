@@ -1,48 +1,50 @@
 $(document).ready(function() {
-	var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-	(function askForPlot() {
-		socket.emit('all temps', {'hours': $('#howManyHours').val()});
-		setTimeout(askForPlot, 10000);
-	})();
+    (function askForPlot() {
+	socket.emit('all temps', {'hours': $('#howManyHours').val()});
+	setTimeout(askForPlot, 10000);
+    })();
 
-	var traceplot = new google.visualization.LineChart(document.getElementById('plot'));
-	var avgtraceplot = new google.visualization.LineChart(document.getElementById('avgplot'));
-	socket.on('all temps ready', function(msg) {
-		var plotdata = google.visualization.arrayToDataTable(msg.data);
-		var options = {
-			title: 'all',
-			curveType: 'function',
-			legend: 'none',
-			hAxis: {
-				title: "time"
-			},
-			vAxis: {
-				title: "temp"
-			},
-			fontSize: 18
-		};
-		traceplot.draw(plotdata, options);
+    var allplot = document.getElementById('plot');
+    Plotly.newPlot('plot', [
+    ], {
+	title: 'all SiPMs',
+	titlefont: {size: 20},
+        yaxis: { title: 'temperature', titlefont: {size: 20}},
+	showlegend: false
+    });
+    var nallplottraces = 0;
 
-		var avgplotdata = google.visualization.arrayToDataTable(msg.avgdata);
-		var avgoptions = {
-			curveType: 'function',
-			legend: 'none',
-			hAxis: {
-				title: "time"
-			},
-			vAxis: {
-				title: "temp"
-			},
-			fontSize: 18,
-			title: 'average, max, min'
-		};
-		avgtraceplot.draw(avgplotdata, avgoptions);
-	});
+    var avgplot = document.getElementById('avgplot');
+    Plotly.newPlot('avgplot', [
+    ], {
+	title: 'avg, max, min',
+	titlefont: {size: 20},
+        yaxis: { title: 'temperature', titlefont: {size: 20}},
+	showlegend: false
+    });
+    var startedAvgPlot = false;
+    socket.on('all temps ready', function(msg) {
+	var alltracesindices = [];
+	for (var i = 0; i < nallplottraces; ++i) {
+	    alltracesindices[i] = i;
+	}
+	var nallplottraces = msg.data.length;
+	Plotly.deleteTraces(plot, alltracesindices);
+	Plotly.addTraces(plot, msg.data);
+	
+	if (startedAvgPlot) {
+	    Plotly.deleteTraces(avgplot, [0, 1, 2]);
+	} else {
+	    startedAvgPlot = true;
+	}
+	Plotly.addTraces(avgplot, msg.avgdata);
+    });
 
-	$('#howManyHours').keydown(function(e) {
-		if (e.which == 13) {
-			socket.emit('all temps', {'hours': $('#howManyHours').val()});
-		}
-	});
+    $('#howManyHours').keydown(function(e) {
+	if (e.which == 13) {
+	    socket.emit('all temps', {'hours': $('#howManyHours').val()});
+	}
+    });
 });
