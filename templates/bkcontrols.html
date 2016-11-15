@@ -4,20 +4,29 @@
 </script>
 {% for bk_num in bks %}
 <div class="biasbox" id="bk{{bk_num}}">
-    <h2> <center>BK {{bk_num}} </center></h2>
-    <b><font color="red" id="bk_failure{{bk_num}}" style="display: none">BK not responding!</font></b>
-    <br> BK output <b id="bk_output{{bk_num}}"></b>
-    <button class="btn btn-primary" id="bk_power_button{{bk_num}}" style="display: none"></button>
-    <br>
-    <br> voltage set point: <b id="bk_set_pt{{bk_num}}"></b> new:
-    <input type=text id="new_set_pt{{bk_num}}" size="5"></input> V
-    <b><font color="red" id="bk_error{{bk_num}}" style="display: none">Invalid setting!</font></b>
-    <br>
-    <br> current limit: <b id="bk_i_limit{{bk_num}}"></b>
-    <br>
-    <br> measured output voltage: <b id="bk_measured{{bk_num}}"></b>
-    <br>
-    <br> current output: <b id="bk_i_output{{bk_num}}"></b>
+    <div class="content">
+        <font size="6" color="blue">
+            <center>BK {{bk_num}} </center>
+        </font>
+        <b><font color="red" id="bk_failure{{bk_num}}" style="display: none">BK not responding!</font></b>
+        <br>
+        <font size="4">BK output <b id="bk_output{{bk_num}}"></b></font>
+        <button class="btn btn-primary" id="bk_power_button{{bk_num}}" style="display: none"></button>
+        <br>
+        <br>
+        <font size="4">voltage set point: <b id="bk_set_pt{{bk_num}}"></b> new:</font>
+        <input type=text id="new_set_pt{{bk_num}}" size="4"></input> V
+        <b><font color="red" id="bk_error{{bk_num}}" style="display: none">Invalid setting!</font></b>
+        <br>
+        <br>
+        <font size="4">current limit: <b id="bk_i_limit{{bk_num}}"></b></font>
+        <br>
+        <br>
+        <font size="4">measured output voltage: <b id="bk_measured{{bk_num}}"></b></font>
+        <br>
+        <br>
+        <font size="4">current output: <b id="bk_i_output{{bk_num}}"></b></font>
+    </div>
 </div>{% endfor %} {% if bks|length == 0 %}
 <b> no bks found </b> {% endif %} {% endblock body %} {% block foot %}
 <!-- <a href="/findbks">find bks</a> {% endblock foot %} -->
