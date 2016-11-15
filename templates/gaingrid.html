@@ -1,35 +1,33 @@
-{% extends "layout.html" %}
-{% block moretitle %} gains {% endblock %}
-{% block body %}	
-<link rel=stylesheet type=text/css 
-href="{{ url_for('static', filename='sipmgrid.css') }}">
-<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='gaingrid.js')}}">	
+{% extends "layout.html" %} {% block moretitle %} gains {% endblock %} {% block body %}
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='sipmgrid.css') }}">
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='gaingrid.js')}}">
 </script>
-<b>set all gains:</b> <input type=text id="setAllGains" size="2"></input> <br>
+<b>set all gains:</b>
+<input type=text id="setAllGains" size="2"></input>
 <br>
-{% for sipmnumber in sipm_numbers %}
+<br> {% for sipmnumber in sipm_numbers %}
 <div class="xtalbox">
 	<div class="content">
 		<div class="table">
 			<div class="table-cell">
 				{% if present_sipms[sipmnumber] %}
-					<a href={{"sipm" ~ sipmnumber}}>SiPM {{serials[sipmnumber]}}</a> <br>
-					<txt id={{"sipm" ~ sipmnumber}}></txt>		
+				<a href={{ "sipm" ~ sipmnumber}}>SiPM {{serials[sipmnumber]}}</a>
+				<br>
+				<txt id={{ "sipm" ~ sipmnumber}}></txt>
 				{% endif %}
 			</div>
 		</div>
 	</div>
 </div>
-{% endfor %}
-{% endblock body %}
-{% block foot %}
-<button id="downloadGains">download gains to file</button>
-<br><br>
-load gains from file
-<link rel=stylesheet type=text/css 
-href="{{ url_for('static', filename='sipmgrid.css') }}">
+{% endfor %} {% endblock body %} {% block foot %}
+<button class="btn btn-success" id="downloadGains">download gains to file</button>
+<br>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='sipmgrid.css') }}">
+<br>
 <form action="/preview" method=post enctype=multipart/form-data>
-      <p><input type=file name=file>
-         <input type=submit value=preview>
+	<span class="btn btn-default">
+	load gains from file <input type="file" name=file>
+	</span>
+	<input class="btn btn-success" type=submit value=preview>
 </form>
 {% endblock foot %}

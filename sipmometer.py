@@ -74,7 +74,10 @@ def gain_grid():
 
 @app.route('/preview', methods=['POST'])
 def preview_gains():
-    filestr = request.files['file'].read().decode('utf-8')
+    try:
+        filestr = request.files['file'].read().decode('utf-8')
+    except UnicodeDecodeError:
+        return render_template('badfile.html')
     try:
         gain_map = json.loads(filestr)
     except:

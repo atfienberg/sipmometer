@@ -8,7 +8,9 @@ try another file
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='sipmgrid.css') }}">
 <form action="/preview" method=post enctype=multipart/form-data>
-      <p><input type=file name=file>
-         <input type=submit value=preview>
+	<span class="btn btn-default btn-file">
+	load gains from file <input type="file" name=file>
+	</span>
+	<input class="btn btn-success" type=submit value=preview>
 </form>
 {% endblock foot %}
