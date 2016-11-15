@@ -23,7 +23,7 @@ import json
 import beagle_class
 
 app = Flask(__name__)
-#app.debug = True     
+#app.debug = True
 
 socketio = SocketIO(app, async_mode='eventlet')
 
@@ -33,7 +33,8 @@ logging_temps = False
 running_data = []
 sample_datetimes = []
 
-# temporary to minimize code changes as I try to get this working with new beagle setup
+# temporary to minimize code changes as I try to get this working with new
+# beagle setup
 bks = []
 
 log_thread = None
@@ -50,41 +51,41 @@ for i in range(54):
     present_sipms.append(True if 'sipm%i' % i in sipm_map else False)
 
 
-
 # prepare gain table
 gain_table = [['gain setting', 'dB', 'amplitude ratio']]
 for setting in range(81):
-	dB = 26 - setting/4.0
-	gain_table.append([setting, dB, round(10**(dB/20.0),2)])
+    dB = 26 - setting/4.0
+    gain_table.append([setting, dB, round(10**(dB/20.0), 2)])
 
 # temporary for slac
 #all_temps_ignore = [0, 9, 18, 27, 36, 45]
 all_temps_ignore = []
 
+
 @app.route('/')
 def home():
-    return render_template('sipmgrid.html', sipm_numbers=range(53,-1,-1), present_sipms=present_sipms, serials=sipm_serials)
+    return render_template('sipmgrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials)
 
 
 @app.route('/gaingrid')
 def gain_grid():
-	return render_template('gaingrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials)
+    return render_template('gaingrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials)
 
 
 @app.route('/preview', methods=['POST'])
 def preview_gains():
-	filestr = request.files['file'].read().decode('utf-8')
-	try:
-		gain_map = json.loads(filestr)
-	except:
-		return render_template('badfile.html')
-	file_present_sipms = [False for i in range(54)]
-	new_gains = [0 for i in range(54)]
-	for sipm_num in range(54):
-		if 'sipm%i' % sipm_num in gain_map:
-			file_present_sipms[sipm_num] = True
-			new_gains[sipm_num] = gain_map['sipm%i' % sipm_num]
-	return render_template('previewgains.html', sipm_numbers=range(53,-1,-1), present_sipms=file_present_sipms, gains=new_gains, filename=request.files['file'].filename)
+    filestr = request.files['file'].read().decode('utf-8')
+    try:
+        gain_map = json.loads(filestr)
+    except:
+        return render_template('badfile.html')
+    file_present_sipms = [False for i in range(54)]
+    new_gains = [0 for i in range(54)]
+    for sipm_num in range(54):
+        if 'sipm%i' % sipm_num in gain_map:
+            file_present_sipms[sipm_num] = True
+            new_gains[sipm_num] = gain_map['sipm%i' % sipm_num]
+    return render_template('previewgains.html', sipm_numbers=range(53, -1, -1), present_sipms=file_present_sipms, gains=new_gains, filename=request.files['file'].filename)
 
 
 @app.route('/alltemps')
@@ -94,23 +95,26 @@ def all_temps():
 
 @app.route('/sipm<int:sipm_num>')
 def sipm_graph(sipm_num):
-    if present_sipms[sipm_num]:        
+    if present_sipms[sipm_num]:
         return render_template('singlesipm.html', num=sipm_num, serial=sipm_serials[sipm_num])
     else:
         return render_template('notfound.html')
 
+
 @app.route('/sipm<int:sipm_num>_<string:next_str>')
 def sipm_graph_next(sipm_num, next_str):
-    if sipm_num >= 0 and sipm_num < 54:        
+    if sipm_num >= 0 and sipm_num < 54:
         if next_str == 'next':
             try:
-                sipm_num = next(dropwhile(lambda i: i <= sipm_num or not present_sipms[i], range(sipm_num, 54)))
+                sipm_num = next(
+                    dropwhile(lambda i: i <= sipm_num or not present_sipms[i], range(sipm_num, 54)))
             except StopIteration:
                 return render_template('notfound.html')
             return redirect('/sipm%i' % sipm_num)
         elif next_str == 'prev':
             try:
-                sipm_num = next(dropwhile(lambda i: i >= sipm_num or not present_sipms[i], range(sipm_num, -1, -1)))
+                sipm_num = next(
+                	dropwhile(lambda i: i >= sipm_num or not present_sipms[i], range(sipm_num, -1, -1)))
             except StopIteration:
                 render_template('notfound.html')
             return redirect('/sipm%i' % sipm_num)
@@ -141,21 +145,24 @@ def deliver_gain_file(filename):
     for i in range(54):
         if present_sipms[i]:
             gain_dict['sipm%i' % i] = int(get_gain(i))
-    response = make_response(json.dumps(gain_dict, indent=4, separators=(',', ': ')));
+    response = make_response(
+        json.dumps(gain_dict, indent=4, separators=(',', ': ')))
     if not filename.endswith('.json'):
         filename += '.json'
-    response.headers['Content-Disposition'] = "attachment; filename=%s" % filename
+    response.headers[
+        'Content-Disposition'] = "attachment; filename=%s" % filename
     return response
 
 
 @app.route('/gaintable')
 def gaintable():
-	return render_template('gaintable.html', table=gain_table)
+    return render_template('gaintable.html', table=gain_table)
 
 
 @app.route('/bkcontrols')
 def bkcontrols():
-    return render_template('bkcontrols.html', bks=[j for i, j in enumerate(bks) if j is not None])
+    return render_template('bkcontrols.html', bks=[bk for bk in bks if bk is not None])
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -193,8 +200,9 @@ def all_temps_plot(msg):
     if len(running_data) < 2:
         return
     start_index = get_start_index(msg)
-    header = ['sipm %i' % i for i in range(54) if 'sipm%i' % i in sipm_map and i not in all_temps_ignore]
-    data = [{'name': name, 'y': [], 'mode': 'lines'} for name in header] 
+    header = ['sipm %i' % i for i in range(
+        54) if 'sipm%i' % i in sipm_map and i not in all_temps_ignore]
+    data = [{'name': name, 'y': [], 'mode': 'lines'} for name in header]
 
     # downsample to help with performance
     plot_data = running_data[start_index:]
@@ -207,23 +215,24 @@ def all_temps_plot(msg):
     for trace in data:
         trace['x'] = times
 
-    max_index = next((i for i, val in enumerate(running_data[-1][1:]) if val != 'no sipm')) + 1
+    max_index = next(
+        (i for i, val in enumerate(running_data[-1][1:]) if val != 'no sipm')) + 1
     min_index = max_index
-    
+
     for index, val in enumerate(plot_data[-1]):
         if val != 'no sipm' and index != 0:
             if val > plot_data[-1][max_index]:
                 max_index = index
             if val < plot_data[-1][min_index]:
                 min_index = index
-    avgdata = [{'name': 'average temp', 'y': [], 'mode': 'lines'}, {'name': 'sipm%i' %
-                                                                    (max_index - 1), 'y': [], 'mode': 'lines'}, {'name': 'sipm%i' % (min_index - 1), 'y': [], 'mode': 'lines'}]
+    avgdata = [{'name': 'average temp', 'y': [], 'mode': 'lines'}, {'name': 'sipm%i' % (
+        max_index - 1), 'y': [], 'mode': 'lines'}, {'name': 'sipm%i' % (min_index - 1), 'y': [], 'mode': 'lines'}]
     for trace in avgdata:
         trace['x'] = times
     for row in plot_data[::stepsize]:
         numeric_row = [element for element in row if element != 'no sipm']
         avgdata[0]['y'].append(np.sum(numeric_row[1:]) /
-                        (len(numeric_row)-1))
+                               (len(numeric_row)-1))
         avgdata[1]['y'].append(row[max_index])
         avgdata[2]['y'].append(row[min_index])
         # avgdata.append([row[0], np.sum(numeric_row[1:]) /
@@ -274,9 +283,9 @@ def set_all_gains(msg):
 
 @socketio.on('set these gains')
 def set_these_gains(msg):
-	for sipm_num in range(54):
-		if present_sipms[sipm_num] and 'sipm%i' % sipm_num in msg:
-			set_gain(sipm_num, int(msg['sipm%i' % sipm_num]))
+    for sipm_num in range(54):
+        if present_sipms[sipm_num] and 'sipm%i' % sipm_num in msg:
+            set_gain(sipm_num, int(msg['sipm%i' % sipm_num]))
 
 
 @socketio.on('bk status')
@@ -294,19 +303,20 @@ def new_voltage_pt(msg):
 #        subprocess.call(['./setBiasODB', str(msg['num']+1), str(msg['new setting'])])
         emit('bk status', query_bk_status(bk))
 
+
 @socketio.on('toggle bk power')
 def toggle_bk_power(msg):
     bk = int(msg['num'])
     if bk is not None:
         if msg['on']:
-        	bkbeagle.bk_power_on(bk)
+            bkbeagle.bk_power_on(bk)
         else:
             bkbeagle.bk_power_off(bk)
             emit('bk status', query_bk_status(bk))
 
 
 def query_bk_status(bk):
-    status = {'num' : str(bk)}
+    status = {'num': str(bk)}
     status['outstat'] = bkbeagle.bk_output_stat(bk)
     status['voltage'] = bkbeagle.bk_read_voltage(bk)
     status['current'] = bkbeagle.bk_read_currlim(bk)
@@ -349,7 +359,8 @@ def measure_temps():
                 sipm_dict = sipm_map['sipm%i' % i]
                 board_num = sipm_dict['board']
                 chan_num = sipm_dict['chan']
-                temps.append(float(sipmbeagle.read_temp(board_num, chan_num)) if present_sipms[i] and i not in all_temps_ignore else 'no sipm')
+                temps.append(float(sipmbeagle.read_temp(board_num, chan_num)) if present_sipms[
+                             i] and i not in all_temps_ignore else 'no sipm')
             except (ValueError, KeyError):
                 temps.append('no sipm')
         for i, temp in enumerate(temps):
@@ -375,6 +386,7 @@ def set_gain(sipm_num, new_gain):
         board_num = sipm_dict['board']
         chan_num = sipm_dict['chan']
         return sipmbeagle.set_gain(board_num, chan_num, new_gain)
+
 
 def kill_logger():
     global keep_logging, log_thread
@@ -404,8 +416,9 @@ def start_logging():
         keep_logging = True
         log_thread.start()
 
+
 def open_bks():
-    global bks 
+    global bks
     bks = [1, 2, 3, 4]
     for bk in bks:
         bkbeagle.bk_set_currlim(bk, 0.005)
@@ -428,6 +441,6 @@ def fill_sipm_serials():
 
 
 if __name__ == '__main__':
-	open_bks()
-	fill_sipm_serials()
-	socketio.run(app)
+    open_bks()
+    fill_sipm_serials()
+    socketio.run(app)
