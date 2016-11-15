@@ -38,11 +38,18 @@
             <li><a href="{{url_for('bkcontrols')}}">bkcontrols</a></li>
             <li><a href="{{url_for('gaintable')}}">gaintable</a></li>          
           </ul>
-          <p style="display: none" id="loggingStopped" class="navbar-text navbar-right"><font color="red">logging stopped</font></p>
+          <p class="navbar-text navbar-right"><font color="red" style="display: none" id="loggingStopped">logging stopped<br></font>sampling period: <b id="period"></b> s</p>
            <ul class="nav navbar-nav navbar-right">
             <li><a style="display: none" href="/stopLogging" id="stopLink"><button class="btn btn-default">stop logging</button></a></li>
             <li><a href="/restartLogging" id="startLink"><button class="btn btn-default">start logging</button></a></li>      
           </ul>
+          <form class="navbar-form navbar-right">
+            <div class="form-group">
+              <input type="text" class="form-control" id="newperiod">
+            </div>
+            <br>
+            <p> <center>temp sampling period [s]</center></p>
+          </form>
         </div><!--/.nav-collapse -->
       </div>
     </nav>

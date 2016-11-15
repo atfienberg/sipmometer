@@ -50,6 +50,7 @@ present_sipms = []
 for i in range(54):
     present_sipms.append(True if 'sipm%i' % i in sipm_map else False)
 
+sample_period = None
 
 # prepare gain table
 gain_table = [['gain setting', 'dB', 'amplitude ratio']]
@@ -60,7 +61,6 @@ for setting in range(81):
 # temporary for slac
 #all_temps_ignore = [0, 9, 18, 27, 36, 45]
 all_temps_ignore = []
-
 
 @app.route('/')
 def home():
@@ -171,8 +171,18 @@ def page_not_found(e):
 
 @socketio.on('logging?')
 def reply_logging_status():
-    emit('logging status', {'logging': logging_temps})
+	emit('logging status', {'logging': logging_temps, 'period': sample_period})
 
+@socketio.on('new period')
+def new_period(new_p):
+	try:
+		newp = float(new_p)
+	except ValueError:
+		return
+	if 1.0 <= newp:
+		global sample_period
+		sample_period = newp
+		emit('logging status', {'logging': logging_temps, 'period': sample_period})
 
 @socketio.on('temp plot')
 def temp_plot(msg):
@@ -345,7 +355,7 @@ def get_start_index(msg):
 
 def update_temps():
     while keep_logging:
-        sleep(10)
+        sleep(sample_period)
         measure_temps()
 
 
@@ -448,4 +458,5 @@ def fill_sipm_serials():
 if __name__ == '__main__':
     open_bks()
     fill_sipm_serials()
+    sample_period = 10
     socketio.run(app)

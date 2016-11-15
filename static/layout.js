@@ -16,5 +16,15 @@ $(function() {
             $('#loggingStopped').show();
             $('#startLink').show();
         }
+        $('#period').text(msg.period);
+    });
+
+    var newperiodbox = $('#newperiod');
+    newperiodbox.keydown(function(e) {
+        if (e.which == 13) {
+            socket.emit('new period', newperiodbox.val());
+            newperiodbox.val('');
+            return false;
+        }
     });
 });
