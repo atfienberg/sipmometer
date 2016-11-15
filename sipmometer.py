@@ -117,7 +117,7 @@ def sipm_graph_next(sipm_num, next_str):
         elif next_str == 'prev':
             try:
                 sipm_num = next(
-                	dropwhile(lambda i: i >= sipm_num or not present_sipms[i], range(sipm_num, -1, -1)))
+                    dropwhile(lambda i: i >= sipm_num or not present_sipms[i], range(sipm_num, -1, -1)))
             except StopIteration:
                 render_template('notfound.html')
             return redirect('/sipm%i' % sipm_num)
@@ -174,18 +174,18 @@ def page_not_found(e):
 
 @socketio.on('logging?')
 def reply_logging_status():
-	emit('logging status', {'logging': logging_temps, 'period': sample_period})
+    emit('logging status', {'logging': logging_temps, 'period': sample_period})
 
 @socketio.on('new period')
 def new_period(new_p):
-	try:
-		newp = float(new_p)
-	except ValueError:
-		return
-	if 1.0 <= newp:
-		global sample_period
-		sample_period = newp
-		emit('logging status', {'logging': logging_temps, 'period': sample_period})
+    try:
+        newp = float(new_p)
+    except ValueError:
+        return
+    if 1.0 <= newp:
+        global sample_period
+        sample_period = newp
+        emit('logging status', {'logging': logging_temps, 'period': sample_period})
 
 @socketio.on('temp plot')
 def temp_plot(msg):
