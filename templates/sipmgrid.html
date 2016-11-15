@@ -5,6 +5,8 @@
 href="{{ url_for('static', filename='sipmgrid.css') }}">
 <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='grid.js')}}">	
 </script>
+<b> change sampling period: </b><input type=text id="newperiod" size="5"> [s] <br>
+<br>
 {% for sipmnumber in sipm_numbers %}
 <div class="xtalbox">
 	<div class="content">
