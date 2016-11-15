@@ -10,10 +10,12 @@ $(function() {
         if (msg.logging) {
             $('#stopLink').show();
             $('#loggingStopped').hide();
+            $('#loggingInProg').show();
             $('#startLink').hide();
         } else {
             $('#stopLink').hide();
             $('#loggingStopped').show();
+            $('#loggingInProg').hide();
             $('#startLink').show();
         }
         $('#period').text(msg.period);

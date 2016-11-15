@@ -38,7 +38,8 @@
             <li><a href="{{url_for('bkcontrols')}}">bkcontrols</a></li>
             <li><a href="{{url_for('gaintable')}}">gaintable</a></li>          
           </ul>
-          <p class="navbar-text navbar-right"><font color="red" style="display: none" id="loggingStopped">logging stopped<br></font>sampling period: <b id="period"></b> s</p>
+          <p class="navbar-text navbar-right"><font color="red" style="display: none" id="loggingStopped">logging stopped<br></font>
+	  <font color="green" style="display: none" id="loggingInProg">logging in progress<br></font>sampling period: <b id="period"></b> s</p>
            <ul class="nav navbar-nav navbar-right">
             <li><a style="display: none" href="/stopLogging" id="stopLink"><button class="btn btn-default">stop logging</button></a></li>
             <li><a href="/restartLogging" id="startLink"><button class="btn btn-default">start logging</button></a></li>      
