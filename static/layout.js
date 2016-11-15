@@ -10,9 +10,11 @@ $(function() {
         if (msg.logging) {
             $('#stopLink').show();
             $('#loggingStopped').hide();
+            $('#startLink').hide();
         } else {
             $('#stopLink').hide();
             $('#loggingStopped').show();
+            $('#startLink').show();
         }
     });
 });
