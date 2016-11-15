@@ -298,7 +298,12 @@ def bk_status():
 @socketio.on('new voltage pt')
 def new_voltage_pt(msg):
     bk = int(msg['num'])
-    if bk is not None:
+    new_setting = None
+    try: 
+        new_setting = float(msg['new setting'])
+    except ValueError:
+        return
+    if bk is not None and 0.0 <= new_setting <= 72.0:
         bkbeagle.bk_set_voltage(bk, float(msg['new setting']))
 #        subprocess.call(['./setBiasODB', str(msg['num']+1), str(msg['new setting'])])
         emit('bk status', query_bk_status(bk))

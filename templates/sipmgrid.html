@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
+{% block moretitle %} temperatures {% endblock %}
 {% block body %}	
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='sipmgrid.css') }}">
 <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='grid.js')}}">	
 </script>
-<h2 align="center"> <font color="red"> temps </font></h2>
 {% for sipmnumber in sipm_numbers %}
 <div class="xtalbox">
 	<div class="content">

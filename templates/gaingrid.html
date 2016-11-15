@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
+{% block moretitle %} gains {% endblock %}
 {% block body %}	
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='sipmgrid.css') }}">
 <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='gaingrid.js')}}">	
 </script>
-<h2 align="center"> <font color="red"> gains </font></h2>
 <b>set all gains:</b> <input type=text id="setAllGains" size="2"></input> <br>
 <br>
 {% for sipmnumber in sipm_numbers %}

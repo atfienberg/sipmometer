@@ -1,0 +1,9 @@
+.biasbox {
+  float: left;
+  position: relative;
+  width: 45%;
+  padding-bottom: 8%;
+  margin: 2.5%;
+  overflow: hidden;
+  background: #eee;
+}

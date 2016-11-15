@@ -1,36 +1,53 @@
 <!DOCTYPE HTML>
 <html>
+
 <head>
-<title>Silicon Photomultiplometer</title>
-<script type="text/javascript" src="/static/jquery-1.12.4.min.js"></script>
-<script src="static/socket.io-1.4.6.min.js"></script>
-<script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-</head>	
-<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='layout.js')}}"> 
+    <title>Silicon Photomultiplometer</title>
+    <script type="text/javascript" src="/static/jquery-1.12.4.min.js"></script>
+    <script src="static/socket.io-1.4.6.min.js"></script>
+    <script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- BOOTSTRAP -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='layout.js')}}">
 </script>
-<link rel=stylesheet type=text/css 
-href="{{ url_for('static', filename='style.css') }}">
-<link rel="shortcut icon" 
-href="{{ url_for('static', filename='favicon.ico') }}">	
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 <div class=page>
-  <!-- <a href="{{ url_for('home') }}"><h1>SiPMometer</h1></a> -->
-  <h1> <font color="black"> <strong>Silicon Photomultiplometer</strong></font></h1>
-  <div class=metanav>
-    <div align="left">
-    <a href="{{url_for('home')}}">tempgrid</a>
-    <a href="{{url_for('all_temps')}}">tempplots</a>
-    <a href="{{url_for('gain_grid')}}">gaingrid</a>
-    <a href="{{url_for('bkcontrols')}}">bkcontrols</a>
-    <a href="{{url_for('gaintable')}}">gaintable</a>
+    <div class="page-header">
+        <h1>Test Calo{% block moretitle %}{% endblock %}</h1>
     </div>
-    <div align="right">
-    <a style="display: none" id="stopLink" href="/stopLogging">stop</a> 
-    <b style="display: none" id="loggingStopped">logging stopped</b>
-    <a href="/restartLogging"> restart </a>
-    </div>
-  </div>
-  {% block body %}{% endblock %}
-  {% block foot %}{% endblock %}
-  <br></br>
+      <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" style="font-size: 24px !important;">SiPMometer</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-left">
+            <li><a href="{{url_for('home')}}">Home</a></li>
+            <li><a href="{{url_for('all_temps')}}">alltemps</a></li>
+            <li><a href="{{url_for('gain_grid')}}">gaingrid</a></li>
+            <li><a href="{{url_for('bkcontrols')}}">bkcontrols</a></li>
+            <li><a href="{{url_for('gaintable')}}">gaintable</a></li>          
+          </ul>
+          <p style="display: none" id="loggingStopped" class="navbar-text navbar-right"><font color="red">logging stopped</font></p>
+           <ul class="nav navbar-nav navbar-right">
+            <li><a style="display: none" href="/stopLogging"><button class="btn btn-default">stop</button></a></li>
+            <li><a href="/restartLogging"><button class="btn btn-default">start logging</button></a></li>      
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+    {% block body %}{% endblock %} {% block foot %}{% endblock %}
+    <br></br>
 </div>
+
 </html>
