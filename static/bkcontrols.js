@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(function() {
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
     (function getBkStatus() {
