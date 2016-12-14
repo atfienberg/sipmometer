@@ -72,10 +72,14 @@ class Beagle:
         return self.issue_command('bk %i set current %f' % (bk_num, current))
 
 def main():
-    b = Beagle('tcp://192.168.1.22:6669')
-    print(b.read_temp(10))
-    print(b.read_gain(10))
-    print(b.set_gain(10, 50))
+    b = Beagle('tcp://192.168.1.21:6669')
+    print('read board 1 chan 5 temp: ')
+    print(b.read_temp(1, 5))
+    print('read board 1 chan 5 gain: ')
+    print(b.read_gain(1, 5))
+    print('read board 1 chan 5 mem: ')
+    print(b.read_mem(1, 5))
+
 
 
 if __name__ == "__main__":
