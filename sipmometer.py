@@ -67,6 +67,11 @@ def home():
     return render_template('sipmgrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials)
 
 
+@app.route('/reload')
+def reload_serials():
+    fill_sipm_serials()
+    return redirect('/')
+
 @app.route('/gaingrid')
 def gain_grid():
     return render_template('gaingrid.html', sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials)
@@ -227,9 +232,13 @@ def all_temps_plot(msg):
             data[sipm_num]['y'].append(temp)
     for trace in data:
         trace['x'] = times
+    
+    max_index = None
+    try:
+        max_index = next((i for i, val in enumerate(running_data[-1][1:]) if val != 'no sipm')) + 1
+    except (IndexError, StopIteration):
+        return
 
-    max_index = next(
-        (i for i, val in enumerate(running_data[-1][1:]) if val != 'no sipm')) + 1
     min_index = max_index
 
     for index, val in enumerate(plot_data[-1]):
