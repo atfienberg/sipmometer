@@ -308,7 +308,7 @@ def set_these_gains(msg):
     for sipm_num in range(54):
         if present_sipms[sipm_num] and 'sipm%i' % sipm_num in msg:
             set_gain(sipm_num, int(msg['sipm%i' % sipm_num]))
-
+            
 
 @socketio.on('bk status')
 def bk_status():

@@ -27,6 +27,8 @@ class Beagle:
             self.socket.send_string(command)
             try:
                 return self.socket.recv().decode('utf8')
+            except UnicodeDecodeError:
+                return 'utf decode error'
             except zmq.error.Again:
                 self.socket.close()
                 self.open_sock()
