@@ -385,7 +385,7 @@ def measure_temps():
             try:
                 sipm_dict = sipm_map['sipm%i' % i]
                 board_num = sipm_dict['board']
-                chan_num = sipm_dict['chan']
+                chan_num = sipm_dict['chan'] - 1
                 temps.append(float(sipmbeagle.read_temp(board_num, chan_num)) if present_sipms[
                              i] and i not in all_temps_ignore else 'no sipm')
             except (ValueError, KeyError):
@@ -403,7 +403,7 @@ def get_gain(sipm_num):
     if present_sipms[sipm_num]:
         sipm_dict = sipm_map['sipm%i' % sipm_num]
         board_num = sipm_dict['board']
-        chan_num = sipm_dict['chan']
+        chan_num = sipm_dict['chan'] - 1
         return sipmbeagle.read_gain(board_num, chan_num)
 
 
@@ -411,7 +411,7 @@ def set_gain(sipm_num, new_gain):
     if present_sipms[sipm_num] and (0 <= new_gain <= 80):
         sipm_dict = sipm_map['sipm%i' % sipm_num]
         board_num = sipm_dict['board']
-        chan_num = sipm_dict['chan']
+        chan_num = sipm_dict['chan'] - 1
         return sipmbeagle.set_gain(board_num, chan_num, new_gain)
 
 
@@ -457,7 +457,7 @@ def fill_sipm_serials():
         if present_sipms[sipm_num]:
             sipm_dict = sipm_map['sipm%i' % sipm_num]
             board_num = sipm_dict['board']
-            chan_num = sipm_dict['chan']
+            chan_num = sipm_dict['chan'] - 1
             serial = sipmbeagle.read_mem(board_num, chan_num)
             try:
                 sipm_serials.append(int(serial.split()[0]))
