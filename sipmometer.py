@@ -38,11 +38,11 @@ sipmbeagles = [beagle_class.Beagle('tcp://127.0.0.1:6669', timeout=100) for i in
 dbconf = None
 with open('config/dbconnection.json', 'r') as f:
     dbconf = json.load(f)
-
-def generate_calo_map(calo_num):
-    cnx = psycopg2.connect(user=dbconf['user'], password=dbconf['password'],
+cnx = psycopg2.connect(user=dbconf['user'], password=dbconf['password'],
                                   host=dbconf['host'],
                                   database=dbconf['dbname'], port=dbconf['port'])
+
+def generate_calo_map(calo_num):
     cursor=cnx.cursor()
     cursor.execute("SELECT calo_xtal_num, breakoutboard, sipm_id FROM gluing_progress WHERE calo_id=%i ORDER BY calo_xtal_num" % calo_num)
     sipm_map = OrderedDict()
@@ -57,7 +57,6 @@ def generate_calo_map(calo_num):
         entry['sipm_id'] = sid
         sipm_map['sipm%i' % xtal_num] = entry
     cursor.close()
-    cnx.close()
     return sipm_map
 
 sipm_maps = [generate_calo_map(calo) for calo in range(1,25)]
