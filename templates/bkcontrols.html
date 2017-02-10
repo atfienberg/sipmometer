@@ -1,6 +1,5 @@
 {% extends "layout.html" %} {% block moretitle %} bias controls {% endblock %} {% block body %}
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='biasgrid.css') }}">
-<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='bkcontrols.js')}}">
 </script>
 {% for bk_num in bks %}
 <div class="biasbox" id="bk{{bk_num}}">
@@ -28,5 +27,7 @@
         <font size="4">current output: <b id="bk_i_output{{bk_num}}"></b></font>
     </div>
 </div>{% endfor %} {% if bks|length == 0 %}
-<b> no bks found </b> {% endif %} {% endblock body %} {% block foot %}
-<!-- <a href="/findbks">find bks</a> {% endblock foot %} -->
+<b> no bks found </b> {% endif %} {% endblock body %} 
+{% block morescripts %}
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='bkcontrols.js')}}"></script>
+{% endblock morescripts %}

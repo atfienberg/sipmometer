@@ -1,0 +1,10 @@
+{
+  "what": "config file for db connection parameters",
+  "who": "Aaron Fienberg, fienberg@uw.edu",
+  "when": "February, 2017",
+  "host": "xxx",
+  "dbname": "gm2_conditions_dev",
+  "user": "xxx",
+  "password": "xxx",
+  "port": 5445
+}

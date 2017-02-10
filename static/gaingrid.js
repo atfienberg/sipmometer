@@ -1,18 +1,22 @@
 $(function() {
+    var calonum = parseInt($('calonum').text());
+
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
     (function askForGains() {
-        socket.emit('all gains');
+        socket.emit('all gains', { 'calo': calonum });
         setTimeout(askForGains, 10000);
     })();
 
     socket.on('sipm gain', function(msg) {
-        $('#sipm'.concat(msg.num)).text(msg.gain);
+        if (msg.calo == calonum) {
+            $('#sipm'.concat(msg.num)).text(msg.gain);
+        }
     });
 
     $('#setAllGains').keydown(function(e) {
         if (e.which == 13) {
-            socket.emit('set all gains', { 'new_gain': $('#setAllGains').val() });
+            socket.emit('set all gains', { 'calo': calonum, 'new_gain': $('#setAllGains').val() });
             $('#setAllGains').val('');
         }
     });
@@ -26,7 +30,7 @@ $(function() {
         if (!fileName.length) {
             alert("bad filename!");
         } else {
-            window.location.assign('/gainfile_' + fileName);
+            window.location.assign('/calo' + calonum + '/gainfile_' + fileName);
         }
     });
 

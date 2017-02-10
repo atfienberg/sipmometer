@@ -22,12 +22,16 @@ href="{{ url_for('static', filename='sipmgrid.css') }}">
 {% endfor %}
 {% endblock body %}
 {% block foot %}
-<button id="accept" size=4> accept and submit </button> <br><br>
-try another file
+<button class="btn btn-success" id="accept">accept and submit</button>
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='sipmgrid.css') }}">
-<form action="/preview" method=post enctype=multipart/form-data>
-      <p><input type=file name=file>
-         <input type=submit value=preview>
+<form action={{ "/calo"~calo_num~"/preview"}} method=post enctype=multipart/form-data>
+    <span class="btn btn-default">
+    try another file<input type="file" name=file>
+    </span>
+    <input class="btn btn-success" type=submit value=preview>
 </form>
 {% endblock foot %}
+{% block morescripts %}
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='preview.js')}}"></script>preview
+{% endblock morescripts %}

@@ -1,23 +1,14 @@
 $(function() {
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var url = $(location).attr('href');
+    var re = /([ \w \d : / ])(calo)(\d+)(.+)/;
 
-    (function askIfLogging() {
-        socket.emit('logging?');
-        setTimeout(askIfLogging, 500);
-    })();
+    function get_link_callback(calo_num) {
+        return function() {
+            window.location.replace(url.replace(re, '$1$2' + calo_num + '$4'));
+        };
+    } 
 
-    socket.on('logging status', function(msg) {
-        if (msg.logging) {
-            $('#stopLink').show();
-            $('#loggingStopped').hide();
-            $('#loggingInProg').show();
-            $('#startLink').hide();
-        } else {
-            $('#stopLink').hide();
-            $('#loggingStopped').show();
-            $('#loggingInProg').hide();
-            $('#startLink').show();
-        }
-        $('#period').text(msg.period);
-    });
+    for (var i = 1; i < 25; ++i) {
+        $('#calo' + i).click(get_link_callback(i));
+    }
 });

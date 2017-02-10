@@ -3,22 +3,22 @@
 {% block body %}	
 <link rel=stylesheet type=text/css 
 href="{{ url_for('static', filename='sipmgrid.css') }}">
-<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='grid.js')}}">	
-</script>
-<b> change sampling period: </b><input type=text id="newperiod" size="5"> [s] <br>
 <br>
 {% for sipmnumber in sipm_numbers %}
 <div class="xtalbox">
 	<div class="content">
 		<div class="table">
 			<div class="table-cell">
-			{% if present_sipms[sipmnumber] %}
+				{% if present_sipms[sipmnumber] %}
 				<a href={{"sipm" ~ sipmnumber}}>SiPM {{serials[sipmnumber]}}</a> <br>
 				<txt id={{"sipm" ~ sipmnumber}}></txt>	
-			{% endif %}	
+				{% endif %}	
 			</div>
 		</div>
 	</div>
 </div>
 {% endfor %}
 {% endblock body %}
+{% block morescripts %}
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='grid.js')}}"></script>
+{% endblock morescripts %}

@@ -1,4 +1,6 @@
 $(function() {
+    var calonum = parseInt($('calonum').text());
+
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
     var gains = {};
@@ -11,8 +13,8 @@ $(function() {
     }
 
     $('#accept').click(function() {
-        socket.emit('set these gains', gains);
-        window.location.assign('/gaingrid');
+        socket.emit('set these gains', { 'gains': gains, 'calo': calonum });
+        window.location.assign('/calo' + calonum + '/gaingrid');
     });
 
 });

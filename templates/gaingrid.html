@@ -1,6 +1,5 @@
 {% extends "layout.html" %} {% block moretitle %} gains {% endblock %} {% block body %}
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='sipmgrid.css') }}">
-<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='gaingrid.js')}}">
 </script>
 <b>set all gains:</b>
 <input type=text id="setAllGains" size="2"></input>
@@ -24,10 +23,13 @@
 <br>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='sipmgrid.css') }}">
 <br>
-<form action="/preview" method=post enctype=multipart/form-data>
+<form action={{ "/calo"~calo_num~"/preview"}} method=post enctype=multipart/form-data>
 	<span class="btn btn-default">
 	load gains from file <input type="file" name=file>
 	</span>
 	<input class="btn btn-success" type=submit value=preview>
 </form>
 {% endblock foot %}
+{% block morescripts %}
+<script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='gaingrid.js')}}"></script>
+{% endblock morescripts %}
