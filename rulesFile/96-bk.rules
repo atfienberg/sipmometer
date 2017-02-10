@@ -1,1 +1,0 @@
-ACTION=="add", SUBSYSTEMS=="usb", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", KERNEL=="ttyUSB*", MODE="0666", IMPORT{program}="/home/newg2/Workspace/aaron-work/sipmometer/scripts/set_bk_env.py %k", SYMLINK+="bk$env{bknum}"

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-if [[ $# -eq 2 ]]; then
-    ssh daq@192.168.1.100 "source .bash_profile; odbedit -e SLAC -c 'set \"/Equipment/AMC1301/Settings/CalorimeterSettings/Bias Voltage$1\" $2'"
-fi
