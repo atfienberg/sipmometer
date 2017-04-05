@@ -2,11 +2,11 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='biasgrid.css') }}">
 </script>
 {% for bk_num in bks %}
-<div class="biasbox" id="bk{{bk_num}}">
-    <div class="content">
-        <font size="6" color="blue">
-            <center>BK {{bk_num}} </center>
-        </font>
+<div class="biasbox panel panel-success" id="bk{{bk_num}}">
+    <div class="panel-heading">
+            <h4 style="text-align: center;">BK {{bk_num}}</h4>
+    </div>
+    <div class="panel-body">
         <b><font color="red" id="bk_failure{{bk_num}}" style="display: none">BK not responding!</font></b>
         <br>
         <font size="4">BK output <b id="bk_output{{bk_num}}"></b></font>
