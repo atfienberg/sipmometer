@@ -22,7 +22,6 @@ $(function() {
     });
 
     $('#downloadGains').click(function() {
-        console.log('test');
         var fileName = prompt('enter file name (leave out file extension)', '');
         fileName = fileName.replace(/ /g, '');
         //remove unfriendly characters
