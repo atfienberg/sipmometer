@@ -32,8 +32,8 @@ sipm_serials = [[] for i in range(24)]
 # bkbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=400)
 # sipmbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=100)
 
-bkbeagles = [beagle_class.Beagle('tcp://127.0.0.1:6669', timeout=400) for i in range(24)]
-sipmbeagles = [beagle_class.Beagle('tcp://127.0.0.1:6669', timeout=100) for i in range(24)]
+bkbeagles = [beagle_class.Beagle('tcp://192.168.{}.21:6669'.format(i), timeout=400) for i in range(1,25)]
+sipmbeagles = [beagle_class.Beagle('tcp://192.168.{}.21:6669'.format(i), timeout=100) for i in range(1,25)]
 
 dbconf = None
 with open('config/dbconnection.json', 'r') as f:
@@ -287,7 +287,7 @@ def get_gain(calo, sipm_num):
         board_num = sipm_dict['board']
         chan_num = sipm_dict['chan'] - 1
         try:
-            return sipmbeagles[calo-1].read_gain(board_num, chan_num)
+            return sipmbeagles[calo].read_gain(board_num, chan_num)
         except IndexError:
             return None
 
@@ -298,7 +298,7 @@ def get_temp(calo, sipm_num):
         board_num = sipm_dict['board']
         chan_num = sipm_dict['chan'] - 1
         try:
-            return sipmbeagles[calo-1].read_temp(board_num, chan_num)
+            return sipmbeagles[calo].read_temp(board_num, chan_num)
         except IndexError:
             return None
 
@@ -333,4 +333,4 @@ def fill_sipm_serials(calo_num):
 if __name__ == '__main__':
     for calo in range(24):
         sipm_serials[calo] = ['unitialized' for i in range(54)]
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0')
