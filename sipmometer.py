@@ -75,7 +75,7 @@ all_temps_ignore = []
 
 @app.route('/')
 def root():
-    return redirect('/calo1/temps')
+    return redirect('/calo23/temps')
 
 
 @app.route('/calo<int:calo_num>/temps')
