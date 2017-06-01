@@ -35,6 +35,10 @@ sipm_serials = [[] for i in range(24)]
 bkbeagles = [beagle_class.Beagle('tcp://192.168.{}.21:6669'.format(i), timeout=400) for i in range(1,25)]
 sipmbeagles = [beagle_class.Beagle('tcp://192.168.{}.21:6669'.format(i), timeout=100) for i in range(1,25)]
 
+# t0
+bkbeagles += [beagle_class.Beagle('tcp://192.168.22.23:6669', timeout=400)]
+sipmbeagles += [beagle_class.Beagle('tcp://192.168.22.23:6669', timeout=100)]
+
 dbconf = None
 with open('config/dbconnection.json', 'r') as f:
     dbconf = json.load(f)
@@ -80,20 +84,28 @@ def root():
 
 @app.route('/calo<int:calo_num>/temps')
 def temps(calo_num):
-    return render_template('sipmgrid.html', calo_num=calo_num, sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials[calo_num-1])
+    if calo_num != 25:
+        return render_template('sipmgrid.html', calo_num=calo_num, sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials[calo_num-1])
+    else:
+        return redirect('/calo25/bkcontrols')
 
 
 @app.route('/calo<int:calo_num>/reload')
 def reload_serials(calo_num):
-    sipm_maps[calo_num-1] = generate_calo_map(calo_num)
-    fill_sipm_serials(calo_num-1)
-    return redirect('/calo%s/temps' % calo_num)
+    if calo_num != 25:
+        sipm_maps[calo_num-1] = generate_calo_map(calo_num)
+        fill_sipm_serials(calo_num-1)
+        return redirect('/calo%s/temps' % calo_num)
+    else:
+        return redirect('/calo25/bkcontrols')
 
 
 @app.route('/calo<int:calo_num>/gaingrid')
 def gain_grid(calo_num):
-    return render_template('gaingrid.html', calo_num=calo_num, sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials[calo_num-1])
-
+    if calo_num != 25:
+        return render_template('gaingrid.html', calo_num=calo_num, sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials[calo_num-1])
+    else:
+        return redirect('/calo25/bkcontrols')
 
 @app.route('/calo<int:calo_num>/preview', methods=['POST'])
 def preview_gains(calo_num):
@@ -167,7 +179,10 @@ def gaintable(calo_num):
 
 @app.route('/calo<int:calo_num>/bkcontrols')
 def bkcontrols(calo_num):
-    return render_template('bkcontrols.html', calo_num=calo_num, bks=range(1,5))
+    if (calo_num != 25):
+        return render_template('bkcontrols.html', calo_num=calo_num, bks=range(1,5))
+    else:
+        return render_template('bkcontrols.html', calo_num=calo_num, bks=range(1,2))
 
 
 @app.errorhandler(404)
@@ -240,7 +255,8 @@ def set_these_gains(msg):
 @socketio.on('bk status')
 def bk_status(msg):
     calo = msg['calo'] - 1
-    for bk in range(1,5):
+    last_bk = 2 if calo == 24 else 5
+    for bk in range(1,last_bk):
         if bk is not None:
             emit('bk status', query_bk_status(calo, bk), broadcast=True)
 
@@ -254,7 +270,7 @@ def new_voltage_pt(msg):
         new_setting = float(msg['new setting'])
     except ValueError:
         return
-    if bk is not None and 0.0 <= new_setting <= 72.0 and 0 <= calo <= 23:
+    if bk is not None and 0.0 <= new_setting <= 72.0 and 0 <= calo <= 24:
         bkbeagles[calo].bk_set_voltage(bk, float(msg['new setting']))
         emit('bk status', query_bk_status(calo, bk))
 

@@ -1,5 +1,11 @@
 $(function() {
     var calonum = parseInt($('calonum').text());
+    console.log(calonum);
+    if (isNaN(calonum)) {
+	calonum = 25;
+    }
+
+    var numBKS = calonum == 25 ? 1 : 4;
 
     var socket = io.connect('http://' + document.domain + ':' + location.port);
 
@@ -49,7 +55,7 @@ $(function() {
         };
     }
 
-    for (var i = 1; i < 5; ++i) {
+    for (var i = 1; i <= numBKS; ++i) {
         var toggleBox = $('#bk_power_button'.concat(i.toString()));
         var pToggleFunction = getPowerToggleFun(i, toggleBox);
         toggleBox.click(pToggleFunction);
