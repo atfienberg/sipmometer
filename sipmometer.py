@@ -48,7 +48,7 @@ cnx = psycopg2.connect(user=dbconf['user'], password=dbconf['password'],
 
 def generate_calo_map(calo_num):
     cursor=cnx.cursor()
-    cursor.execute("SELECT calo_xtal_num, breakoutboard, sipm_id FROM gluing_progress WHERE calo_id=%i ORDER BY calo_xtal_num" % calo_num)
+    cursor.execute("SELECT calo_xtal_num, breakoutboard, sipm_id FROM calo_connection WHERE calo_id=%i ORDER BY calo_xtal_num" % calo_num)
     sipm_map = OrderedDict()
     sipm_map['calo_num'] = calo_num
     for (xtal_num, bb, sid) in cursor.fetchall():
