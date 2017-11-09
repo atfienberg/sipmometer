@@ -1,33 +1,53 @@
-{% extends "layout.html" %} {% block moretitle %} bias controls {% endblock %} {% block body %}
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='biasgrid.css') }}">
-</script>
-{% for bk_num in bks %}
-<div class="biasbox panel panel-success" id="bk{{bk_num}}">
-    <div class="panel-heading">
-            <h4 style="text-align: center;">BK {{bk_num}}</h4>
+ {% extends "layout.html" %} {% block moretitle %} bias controls {% endblock %} {% block body %}
+ <link rel=stylesheet type=text/css href="{{ url_for('static', filename='biasgrid.css') }}">
+ </script>
+ {% for bk_num in bks %}
+ <div class="biasbox panel panel-success" id="bk{{bk_num}}">
+     <div class="panel-heading">
+	     <h4 style="text-align: center;">BK {{bk_num}}</h4>
+     </div>
+     <div class="panel-body">
+	 <b><font color="red" id="bk_failure{{bk_num}}" style="display: none">BK not responding!</font></b>
+	 <br>
+	 <font size="4">BK output <b id="bk_output{{bk_num}}"></b></font>
+	 <button class="btn btn-primary" id="bk_power_button{{bk_num}}" style="display: none"></button>
+	 <br>
+	 <br>
+	 <font size="4">voltage set point: <b id="bk_set_pt{{bk_num}}"></b> <br>new voltage :</font>
+	 <input type=text id="new_set_pt{{bk_num}}" size="4"></input> V
+	 <b><font color="red" id="bk_error{{bk_num}}" style="display: none">Invalid setting!</font></b>
+	 <br>
+	 <br>
+	 <font size="4">current limit: <b id="bk_i_limit{{bk_num}}"></b></font>
+	 <br>
+	 <br>
+	 <font size="4">measured voltage: <b id="bk_measured{{bk_num}}"></b></font>
+	 <br>
+	 <br>
+	 <font size="4">current output: <b id="bk_i_output{{bk_num}}"></b></font>
+     </div>
+ </div>{% endfor %} {% if bks|length == 0 %}
+ <b> no bks found </b> {% endif %} 
+ {% if bks|length == 1 %}
+ <div class="biasbox panel panel-success" id="caenHV">
+     <div class="panel-heading">
+	     <h4 style="text-align: center;">CAEN HV module</h4>
+     </div>
+     <div class="panel-body">
+       {% for chan_num in range(4) %}
+	 <font size="4"><b> channel {{chan_num}} </b></font> <br>
+	 <font size="4">output <b id="caen_output{{chan_num}}"></b></font>
+	 <button class="btn btn-primary" id="caen_power_button{{chan_num}}" style="display: none"></button>
+	 <br>
+	 <font size="4">voltage set point: <b id="caen_set_pt{{chan_num}}"></b> 
+	   <br>new voltage : </font>
+	 <input type=text id="caen_new_set_pt{{chan_num}}" size="4"></input> <br>
+        <font size="4">current output: <b id="caen_i_output{{chan_num}}"></b></font><br>
+	<br>
+      {% endfor %}
     </div>
-    <div class="panel-body">
-        <b><font color="red" id="bk_failure{{bk_num}}" style="display: none">BK not responding!</font></b>
-        <br>
-        <font size="4">BK output <b id="bk_output{{bk_num}}"></b></font>
-        <button class="btn btn-primary" id="bk_power_button{{bk_num}}" style="display: none"></button>
-        <br>
-        <br>
-        <font size="4">voltage set point: <b id="bk_set_pt{{bk_num}}"></b> <br>new voltage :</font>
-        <input type=text id="new_set_pt{{bk_num}}" size="4"></input> V
-        <b><font color="red" id="bk_error{{bk_num}}" style="display: none">Invalid setting!</font></b>
-        <br>
-        <br>
-        <font size="4">current limit: <b id="bk_i_limit{{bk_num}}"></b></font>
-        <br>
-        <br>
-        <font size="4">measured voltage: <b id="bk_measured{{bk_num}}"></b></font>
-        <br>
-        <br>
-        <font size="4">current output: <b id="bk_i_output{{bk_num}}"></b></font>
-    </div>
-</div>{% endfor %} {% if bks|length == 0 %}
-<b> no bks found </b> {% endif %} {% endblock body %} 
+</div> {% endif %}
+{% endblock body %} 
 {% block morescripts %}
 <script type="text/javascript" charset="utf-8" src="{{url_for('static', filename='bkcontrols.js')}}"></script>
 {% endblock morescripts %}

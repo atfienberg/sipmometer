@@ -261,6 +261,11 @@ def bk_status(msg):
             emit('bk status', query_bk_status(calo, bk), broadcast=True)
 
 
+@socketio.on('caen status')
+def caen_status():
+    emit('caen status', query_caen_status(), broadcast=True)
+
+
 @socketio.on('new voltage pt')
 def new_voltage_pt(msg):
     bk = int(msg['num'])
@@ -275,6 +280,19 @@ def new_voltage_pt(msg):
         emit('bk status', query_bk_status(calo, bk))
 
 
+@socketio.on('new caen voltage')
+def new_caen_volt(msg):
+    chan = int(msg['chan'])
+    new_setting = None
+    try: 
+        new_setting = float(msg['new setting'])
+    except ValueError:
+        return
+    sipmbeagles[24].arbitrary_command('caenHV setvolt {0} {1:.1f}'.format(chan, new_setting)) 
+    emit('caen status', query_caen_status())
+
+
+
 @socketio.on('toggle bk power')
 def toggle_bk_power(msg):
     bk = int(msg['num'])
@@ -287,6 +305,16 @@ def toggle_bk_power(msg):
             emit('bk status', query_bk_status(calo, bk))
 
 
+@socketio.on('toggle caen power')
+def toggle_caen_power(msg):
+    chan = int(msg['chan'])
+    if msg['on']:
+        sipmbeagles[24].arbitrary_command('caenHV turnon {}'.format(chan))
+    else:
+        sipmbeagles[24].arbitrary_command('caenHV turnoff {}'.format(chan))
+    emit('caen status', query_caen_status())
+
+
 def query_bk_status(calo, bk):
     status = {'num': str(bk), 'calo': calo+1}
     status['outstat'] = bkbeagles[calo].bk_output_stat(bk)
@@ -296,6 +324,21 @@ def query_bk_status(calo, bk):
     status['meascurr'] = bkbeagles[calo].bk_measure_current(bk)
     return status
 
+
+def query_caen_status():
+    caen_beagle = sipmbeagles[24]
+    status_list = []
+    for chan in range(4):
+        status = {}
+        try:
+            status_bits = int(caen_beagle.arbitrary_command('caenHV stat {}'.format(chan)))
+        except ValueError:
+            status_bits = 0
+        status['outstat'] = status_bits % 2
+        status['voltage'] = caen_beagle.arbitrary_command('caenHV readvolt {}'.format(chan))
+        status['meascurr'] = caen_beagle.arbitrary_command('caenHV readcurr {}'.format(chan))
+        status_list.append(status)
+    return status_list
 
 def get_gain(calo, sipm_num):
     if present_sipms[sipm_num]:
