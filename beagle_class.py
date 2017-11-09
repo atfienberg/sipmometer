@@ -73,6 +73,9 @@ class Beagle:
     def bk_set_currlim(self, bk_num, current):
         return self.issue_command('bk %i set current %f' % (bk_num, current))
 
+    def arbitrary_command(self, command):
+        return self.issue_command(command)
+
 def main():
     b = Beagle('tcp://192.168.1.21:6669')
     print('read board 1 chan 5 temp: ')
