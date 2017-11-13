@@ -75,7 +75,7 @@ def reload_calo_settings(calo, run_num):
     '''calo can be an integer, or 'all' for all calos
     run_num can be an integer or 'last' for most recent'''
     dbconf = None
-    with open("config/dbconnection.json', 'r') as conf_file:
+    with open('../midasFrontend/config/dbconnection.json', 'r') as conf_file:
         dbconf = json.load(conf_file)
 
     cnx = psycopg2.connect(user=dbconf['user'], host=dbconf['host'],
