@@ -10,6 +10,7 @@ from flask import Flask, render_template, redirect, make_response, request
 from flask_socketio import SocketIO, emit
 from collections import OrderedDict
 from itertools import dropwhile
+from reload_calo import reload_calo_settings
 import json
 import datetime
 import psycopg2
@@ -314,6 +315,15 @@ def toggle_caen_power(msg):
         sipmbeagles[24].arbitrary_command('caenHV turnoff {}'.format(chan))
     emit('caen status', query_caen_status())
 
+
+@socketio.on('reloadSettings')
+def reload_handler(msg):
+    response = 'failed'
+    try:
+        response = reload_calo_settings(msg['calo'], msg['runNum'])
+    except ValueError:
+        pass
+    emit('reload response', response);
 
 def query_bk_status(calo, bk):
     status = {'num': str(bk), 'calo': calo+1}

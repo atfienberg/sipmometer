@@ -33,5 +33,15 @@ $(function() {
         }
     });
 
+    $('#reloadSettings').click(function() {
+        var runNum = prompt('enter desired run number (last for most recent)', '');
+        if (runNum.length) {
+            socket.emit('reload calo settings', { calo: calonum, run: runNum });
+        }
+    });
 
+
+    socket.on('reload response', function(response) {
+        alert(response);
+    });
 });
