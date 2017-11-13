@@ -316,11 +316,11 @@ def toggle_caen_power(msg):
     emit('caen status', query_caen_status())
 
 
-@socketio.on('reloadSettings')
+@socketio.on('reload calo settings')
 def reload_handler(msg):
     response = 'failed'
     try:
-        response = reload_calo_settings(msg['calo'], msg['runNum'])
+        response = reload_calo_settings(msg['calo'], msg['run'])
     except ValueError:
         pass
     emit('reload response', response);

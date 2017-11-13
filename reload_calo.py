@@ -75,7 +75,7 @@ def reload_calo_settings(calo, run_num):
     '''calo can be an integer, or 'all' for all calos
     run_num can be an integer or 'last' for most recent'''
     dbconf = None
-    with open('../midasFrontend/config/dbconnection.json', 'r') as conf_file:
+    with open('config/dbconnection.json', 'r') as conf_file:
         dbconf = json.load(conf_file)
 
     cnx = psycopg2.connect(user=dbconf['user'], host=dbconf['host'],
@@ -97,12 +97,16 @@ def reload_calo_settings(calo, run_num):
     else:
         calo_nums = [int(calo)]
 
+    success = True
     for calo_num in calo_nums:
         if reload_single_calo(odb, calo_num) == 'success':
             fstr = 'successfully reloaded settings from run {0} for calo {1}'
             print(fstr.format(
-                run_num, calo_num))
-
+                run_num, calo_num))            
+        else:
+            success = False
+    
+    return 'success' if success else 'failed, try script manually for details'
 
 def main():
     if len(sys.argv) < 3:
