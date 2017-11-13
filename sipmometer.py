@@ -33,8 +33,10 @@ sipm_serials = [[] for i in range(24)]
 # bkbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=400)
 # sipmbeagle = beagle_class.Beagle('tcp://192.168.1.21:6669', timeout=100)
 
-bkbeagles = [beagle_class.Beagle('tcp://192.168.{}.21:6669'.format(i), timeout=400) for i in range(1,25)]
-sipmbeagles = [beagle_class.Beagle('tcp://192.168.{}.21:6669'.format(i), timeout=100) for i in range(1,25)]
+bkbeagles = [beagle_class.Beagle(
+    'tcp://192.168.{}.21:6669'.format(i), timeout=400) for i in range(1, 25)]
+sipmbeagles = [beagle_class.Beagle(
+    'tcp://192.168.{}.21:6669'.format(i), timeout=100) for i in range(1, 25)]
 
 # t0
 bkbeagles += [beagle_class.Beagle('tcp://192.168.22.23:6669', timeout=400)]
@@ -44,12 +46,14 @@ dbconf = None
 with open('config/dbconnection.json', 'r') as f:
     dbconf = json.load(f)
 cnx = psycopg2.connect(user=dbconf['user'], password=dbconf['password'],
-                                  host=dbconf['host'],
-                                  database=dbconf['dbname'], port=dbconf['port'])
+                       host=dbconf['host'],
+                       database=dbconf['dbname'], port=dbconf['port'])
+
 
 def generate_calo_map(calo_num):
-    cursor=cnx.cursor()
-    cursor.execute("SELECT calo_xtal_num, breakoutboard, sipm_id FROM calo_connection WHERE calo_id=%i ORDER BY calo_xtal_num" % calo_num)
+    cursor = cnx.cursor()
+    cursor.execute(
+        "SELECT calo_xtal_num, breakoutboard, sipm_id FROM calo_connection WHERE calo_id=%i ORDER BY calo_xtal_num" % calo_num)
     sipm_map = OrderedDict()
     sipm_map['calo_num'] = calo_num
     for (xtal_num, bb, sid) in cursor.fetchall():
@@ -64,7 +68,7 @@ def generate_calo_map(calo_num):
     cursor.close()
     return sipm_map
 
-sipm_maps = [generate_calo_map(calo) for calo in range(1,25)]
+sipm_maps = [generate_calo_map(calo) for calo in range(1, 25)]
 present_sipms = [True for i in range(54)]
 sample_period = None
 
@@ -77,6 +81,7 @@ for setting in range(81):
 # temporary for slac
 #all_temps_ignore = [0, 9, 18, 27, 36, 45]
 all_temps_ignore = []
+
 
 @app.route('/')
 def root():
@@ -107,6 +112,7 @@ def gain_grid(calo_num):
         return render_template('gaingrid.html', calo_num=calo_num, sipm_numbers=range(53, -1, -1), present_sipms=present_sipms, serials=sipm_serials[calo_num-1])
     else:
         return redirect('/calo25/bkcontrols')
+
 
 @app.route('/calo<int:calo_num>/preview', methods=['POST'])
 def preview_gains(calo_num):
@@ -144,7 +150,7 @@ def sipm_graph_next(calo_num, sipm_num, next_str):
                     dropwhile(lambda i: i <= sipm_num or not present_sipms[i], range(sipm_num, 54)))
             except StopIteration:
                 return render_template('notfound.html', calo_num=calo_num)
-            return redirect('/calo%i/sipm%i' % (calo_num,sipm_num))
+            return redirect('/calo%i/sipm%i' % (calo_num, sipm_num))
         elif next_str == 'prev':
             try:
                 sipm_num = next(
@@ -159,7 +165,8 @@ def sipm_graph_next(calo_num, sipm_num, next_str):
 @app.route('/calo<int:calo_num>/gainfile_<string:filename>')
 def deliver_gain_file(calo_num, filename):
     gain_dict = OrderedDict()
-    gain_dict['what'] = 'sipm gain settings saved for calo %i, from SiPMometer' % calo_num
+    gain_dict[
+        'what'] = 'sipm gain settings saved for calo %i, from SiPMometer' % calo_num
     gain_dict['when'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for i in range(54):
         if present_sipms[i]:
@@ -181,28 +188,32 @@ def gaintable(calo_num):
 @app.route('/calo<int:calo_num>/bkcontrols')
 def bkcontrols(calo_num):
     if (calo_num != 25):
-        return render_template('bkcontrols.html', calo_num=calo_num, bks=range(1,5))
+        return render_template('bkcontrols.html', calo_num=calo_num, bks=range(1, 5))
     else:
-        return render_template('bkcontrols.html', calo_num=calo_num, bks=range(1,2))
+        return render_template('bkcontrols.html', calo_num=calo_num, bks=range(1, 2))
 
 
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('notfound.html', calo_num=1), 40
 
+
 @socketio.on('all gains')
 def all_gains(msg):
     calo = msg['calo'] - 1
     for i in range(54):
         if 'sipm%i' % i in sipm_maps[calo]:
-            emit('sipm gain', {'gain': get_gain(calo, i), 'num': str(i), 'calo': calo+1})
+            emit('sipm gain', {'gain': get_gain(
+                calo, i), 'num': str(i), 'calo': calo+1})
+
 
 @socketio.on('all temps')
 def all_temps(msg):
     calo = msg['calo'] - 1
     for i in range(54):
         if 'sipm%i' % i in sipm_maps[calo]:
-            emit('sipm temp', {'temp': get_temp(calo, i), 'num': str(i), 'calo': calo+1})
+            emit('sipm temp', {'temp': get_temp(
+                calo, i), 'num': str(i), 'calo': calo+1})
 
 
 @socketio.on('single gain')
@@ -210,7 +221,9 @@ def single_gain(msg):
     num = int(msg['num'])
     calo = int(msg['calo']) - 1
     if 'sipm%i' % num in sipm_maps[calo]:
-        emit('sipm values', {'gain': get_gain(calo, num), 'temp': get_temp(calo, num), 'num': num, 'calo': calo+1})
+        emit('sipm values', {'gain': get_gain(calo, num), 'temp': get_temp(
+            calo, num), 'num': num, 'calo': calo+1})
+
 
 @socketio.on('set gain')
 def set_gain_callback(msg):
@@ -228,7 +241,8 @@ def set_gain_callback(msg):
         return
     if present_sipms[sipm_num]:
         set_gain(calo, sipm_num, new_gain)
-        emit('sipm values', {'gain': get_gain(calo, sipm_num), 'temp': get_temp(calo, sipm_num), 'num': sipm_num, 'calo': calo+1})
+        emit('sipm values', {'gain': get_gain(calo, sipm_num), 'temp': get_temp(
+            calo, sipm_num), 'num': sipm_num, 'calo': calo+1})
 
 
 @socketio.on('set all gains')
@@ -241,7 +255,8 @@ def set_all_gains(msg):
     for sipm_num in range(54):
         if present_sipms[sipm_num]:
             set_gain(calo, sipm_num, new_gain)
-            emit('sipm gain', {'gain': get_gain(calo, sipm_num), 'num': sipm_num, 'calo': calo+1})
+            emit('sipm gain', {'gain': get_gain(
+                calo, sipm_num), 'num': sipm_num, 'calo': calo+1})
 
 
 @socketio.on('set these gains')
@@ -251,13 +266,13 @@ def set_these_gains(msg):
     for sipm_num in range(54):
         if present_sipms[sipm_num] and 'sipm%i' % sipm_num in gain_dict:
             set_gain(calo, sipm_num, int(gain_dict['sipm%i' % sipm_num]))
-            
+
 
 @socketio.on('bk status')
 def bk_status(msg):
     calo = msg['calo'] - 1
     last_bk = 2 if calo == 24 else 5
-    for bk in range(1,last_bk):
+    for bk in range(1, last_bk):
         if bk is not None:
             emit('bk status', query_bk_status(calo, bk), broadcast=True)
 
@@ -272,7 +287,7 @@ def new_voltage_pt(msg):
     bk = int(msg['num'])
     calo = int(msg['calo']) - 1
     new_setting = None
-    try: 
+    try:
         new_setting = float(msg['new setting'])
     except ValueError:
         return
@@ -285,13 +300,13 @@ def new_voltage_pt(msg):
 def new_caen_volt(msg):
     chan = int(msg['chan'])
     new_setting = None
-    try: 
+    try:
         new_setting = float(msg['new setting'])
     except ValueError:
         return
-    sipmbeagles[24].arbitrary_command('caenHV setvolt {0} {1:.1f}'.format(chan, new_setting)) 
+    sipmbeagles[24].arbitrary_command(
+        'caenHV setvolt {0} {1:.1f}'.format(chan, new_setting))
     emit('caen status', query_caen_status())
-
 
 
 @socketio.on('toggle bk power')
@@ -323,7 +338,8 @@ def reload_handler(msg):
         response = reload_calo_settings(msg['calo'], msg['run'])
     except ValueError:
         pass
-    emit('reload response', response);
+    emit('reload response', response)
+
 
 def query_bk_status(calo, bk):
     status = {'num': str(bk), 'calo': calo+1}
@@ -341,14 +357,18 @@ def query_caen_status():
     for chan in range(4):
         status = {}
         try:
-            status_bits = int(caen_beagle.arbitrary_command('caenHV stat {}'.format(chan)))
+            status_bits = int(caen_beagle.arbitrary_command(
+                'caenHV stat {}'.format(chan)))
         except ValueError:
             status_bits = 0
         status['outstat'] = status_bits % 2
-        status['voltage'] = caen_beagle.arbitrary_command('caenHV readvolt {}'.format(chan))
-        status['meascurr'] = caen_beagle.arbitrary_command('caenHV readcurr {}'.format(chan))
+        status['voltage'] = caen_beagle.arbitrary_command(
+            'caenHV readvolt {}'.format(chan))
+        status['meascurr'] = caen_beagle.arbitrary_command(
+            'caenHV readcurr {}'.format(chan))
         status_list.append(status)
     return status_list
+
 
 def get_gain(calo, sipm_num):
     if present_sipms[sipm_num]:
