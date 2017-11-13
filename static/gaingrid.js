@@ -35,11 +35,9 @@ $(function() {
 
     $('#reloadSettings').click(function() {
         var runNum = prompt('enter desired run number (last for most recent)', '');
-	runNum = runNum.replace(/ /g, '');
+        runNum = runNum.replace(/ /g, '');
         //remove unfriendly characters
-        runNum = runNum.replace(/[^a-zA-Z0-9-_.]/g, '');   
-	console.log(runNum);
-	console.log(calonum);
+        runNum = runNum.replace(/[^a-zA-Z0-9-_.]/g, '');
         if (runNum.length) {
             socket.emit('reload calo settings', { calo: calonum.toString(), run: runNum.toString() });
         }
