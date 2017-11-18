@@ -313,7 +313,7 @@ def new_caen_volt(msg):
 def toggle_bk_power(msg):
     bk = int(msg['num'])
     calo = int(msg['calo']) - 1
-    if bk is not None and 0 <= calo <= 23:
+    if bk is not None and 0 <= calo <= 24:
         if msg['on']:
             bkbeagles[calo].bk_power_on(bk)
         else:
