@@ -421,5 +421,5 @@ def fill_sipm_serials(calo_num):
 
 if __name__ == '__main__':
     for calo in range(24):
-        sipm_serials[calo] = ['unitialized' for i in range(54)]
+        sipm_serials[calo] = ['uninitialized' for i in range(54)]
     socketio.run(app, host='0.0.0.0')
